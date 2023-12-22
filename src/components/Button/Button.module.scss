@@ -1,0 +1,25 @@
+// size
+.small {
+    height: 28px;
+}
+
+.medium {
+    height: 40px;
+}
+
+.big {
+    height: 56px;
+}
+
+// theme
+
+.default {
+    border: 2px solid black;
+    color: black;
+    background-color: transparent;
+
+    &:hover {
+        color: white;
+        background-color: black;
+    }
+}
