@@ -74,9 +74,9 @@ function Input({
     const InputTag = textArea ? 'textarea' : 'input';
 
     return (
-        <div className="w-full mt-4">
+        <div className="w-full mt-8">
             {label && (
-                <label className="font-semibold mb-2 block" htmlFor={label}>
+                <label className="font-semibold mb-4 block" htmlFor={label}>
                     {label}
                 </label>
             )}
@@ -89,9 +89,10 @@ function Input({
                 <input
                     id={label}
                     type={inputType}
-                    className="w-full pl-8 pr-4 py-4  outline-none rounded-[25px] shadow-custom-2"
+                    className="w-full pl-8 pr-4 py-6  outline-none rounded-[25px] shadow-custom-2"
                     onKeyUp={handleKeyUp}
                     value={value}
+                    autoComplete="off"
                     data-error={message}
                     onChange={handleOnChange}
                     placeholder={placeholder}

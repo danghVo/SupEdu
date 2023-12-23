@@ -3,7 +3,7 @@ import Button from '../Button';
 
 interface FormProps {
     children: React.ReactNode;
-    header: string;
+    className?: string;
     handleSubmit: () => void;
     submit: {
         custom?: string;
@@ -13,7 +13,7 @@ interface FormProps {
     props?: any;
 }
 
-function Form({ children, header, handleSubmit, submit, customError = '', ...props }: FormProps) {
+function Form({ children, className = '', handleSubmit, submit, customError = '', ...props }: FormProps) {
     const [error, setError] = useState('');
     const formRef = useRef<HTMLDivElement>(null);
     const submitRef = useRef<HTMLDivElement>(null);
@@ -53,17 +53,23 @@ function Form({ children, header, handleSubmit, submit, customError = '', ...pro
     };
 
     return (
-        <div ref={formRef} className=" max-w-[450px] flex-col items-center justify-center rounded-xl p-8" {...props}>
-            <div className="text-center mb-4 font-bold uppercase">{header}</div>
+        <div
+            ref={formRef}
+            className={`max-w-[450px] flex-col items-center justify-center rounded-xl p-8 ${className}`}
+            {...props}
+        >
             {error && <div className={` ${customError}`}>{error}</div>}
             {children}
-            <Button
-                theme="default"
-                className={`mt-8 w-full  ${submit.custom || ''}`}
-                handleClick={handleCheckForSubmit}
-            >
-                {submit.content || 'Gửi'}
-            </Button>
+            <div className="w-full flex justify-center">
+                <Button
+                    theme="fill"
+                    size="big"
+                    className={`mt-16 w-[80%]  ${submit.custom || ''}`}
+                    handleClick={handleCheckForSubmit}
+                >
+                    {submit.content || 'Gửi'}
+                </Button>
+            </div>
         </div>
     );
 }
