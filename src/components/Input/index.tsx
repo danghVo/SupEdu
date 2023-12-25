@@ -95,7 +95,7 @@ function Input({
                     <input
                         id={label}
                         type={inputType}
-                        className={`w-full ${statusIcon.name ? 'pl-4' : 'pl-12'} pr-8 py-6 outline-none ${className}`}
+                        className={`w-full ${statusIcon.name ? 'pl-4' : 'pl-12'} pr-2 py-6 outline-none ${className}`}
                         onKeyUp={handleKeyUp}
                         value={value}
                         autoComplete="off"
