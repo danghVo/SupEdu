@@ -10,15 +10,18 @@ interface rule {
     valid: (checkedData: string) => { message: string; isValid: boolean };
 }
 
-interface InputProps {
+export interface InputProps {
     value: string;
     label?: string;
     textArea?: boolean;
     inputType?: string;
     rules?: Array<rule>;
     onChange: (e: React.ChangeEvent) => void;
-    placeholder: string;
+    placeholder?: string;
     iconNode?: React.ReactNode;
+    className?: string;
+    onFocus?: (e: React.FormEvent<EventTarget>) => void;
+    onBlur?: (e: React.FormEvent<EventTarget>) => void;
 }
 
 const cs = classNames.bind(styles);
@@ -41,8 +44,11 @@ function Input({
     textArea = false,
     rules = [],
     onChange,
-    placeholder,
+    placeholder = '',
+    className = '',
     iconNode = null,
+    onFocus = (e) => {},
+    onBlur = (e) => {},
 }: InputProps) {
     const [errMess, setErrMess] = useState('');
     const { message } = useValid(value, rules);
@@ -80,29 +86,27 @@ function Input({
                     {label}
                 </label>
             )}
-            <div className="relative flex items-center">
+            <div className="relative flex items-center bg-white shadow-custom-2 rounded-[25px] overflow-hidden">
                 {iconNode && <div className="mr-4 text-4xl">{iconNode}</div>}
-                <FontAwesomeIcon
-                    icon={faXmark}
-                    className="absolute top-[50%] translate-y-[-50%] right-[16px] cursor-pointer px-1 text-slate-600 text-3xl"
-                />
-                <input
-                    id={label}
-                    type={inputType}
-                    className="w-full pl-8 pr-4 py-6  outline-none rounded-[25px] shadow-custom-2"
-                    onKeyUp={handleKeyUp}
-                    value={value}
-                    autoComplete="off"
-                    data-error={message}
-                    onChange={handleOnChange}
-                    placeholder={placeholder}
-                />
                 {statusIcon.name && (
-                    <FontAwesomeIcon
-                        icon={statusIcon.name}
-                        className={`absolute top-[50%] translate-y-[-50%] right-[40px] text-[${statusIcon.color}]`}
-                    />
+                    <FontAwesomeIcon icon={statusIcon.name} className={`pl-6 text-[${statusIcon.color}]`} />
                 )}
+                <div className="grow">
+                    <input
+                        id={label}
+                        type={inputType}
+                        className={`w-full ${statusIcon.name ? 'pl-4' : 'pl-12'} pr-8 py-6 outline-none ${className}`}
+                        onKeyUp={handleKeyUp}
+                        value={value}
+                        autoComplete="off"
+                        data-error={message}
+                        onChange={handleOnChange}
+                        placeholder={placeholder}
+                        onFocus={onFocus}
+                        onBlur={onBlur}
+                    />
+                </div>
+                <FontAwesomeIcon icon={faXmark} className="cursor-pointer px-5 text-slate-600 text-3xl" />
             </div>
             {errMess && <div className={cs('input-message')}>{errMess}</div>}
         </div>
