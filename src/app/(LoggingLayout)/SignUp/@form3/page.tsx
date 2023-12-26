@@ -1,14 +1,24 @@
 'use client';
 
 import Image from 'next/image';
+import { useContext } from 'react';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCaretLeft } from '@fortawesome/free-solid-svg-icons';
 
 import Form from '~/components/Form';
 import image from '~/assets/image';
 import InputRatio from '~/components/Input/InputRatio';
+import { SignUpFormProps } from '../@form1/page';
+import { FormController } from '../layout';
 
-export default function page() {
+export default function Page() {
+    const { onBackward, onForward }: SignUpFormProps = useContext(FormController);
+
     return (
         <>
+            <div className="w-full cursor-pointer" onClick={onBackward}>
+                <FontAwesomeIcon icon={faCaretLeft} className="text-[32px] ml-[32px]" />
+            </div>
             <Form
                 handleSubmit={() => {}}
                 className="w-full"
