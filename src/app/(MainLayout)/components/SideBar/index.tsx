@@ -26,7 +26,7 @@ export default function SideBar() {
             onMouseEnter={() => setOpen(true)}
             onMouseLeave={() => setOpen(false)}
             whileHover={{ width: '250px' }}
-            className={`h-screen px-[4px]  relative ${
+            className={`h-screen px-[4px] border-r-2 border-slate-300 border-solid relative ${
                 open ? 'w-[250px]' : 'w-[50px]'
             } overflow-hidden flex flex-col justify-between`}
         >
@@ -40,23 +40,23 @@ export default function SideBar() {
                         <div
                             onClick={() => setActive(index)}
                             key={index}
-                            className={`flex items-center  ${
-                                !open ? 'justify-center' : 'px-[16px] mx-[8px]'
-                            } text-3xl py-[12px] my-[8px] cursor-pointer relative`}
+                            className={`flex items-center  ${!open ? 'justify-center' : 'px-[16px] mx-[8px]'} ${
+                                active === index ? 'text-white' : ''
+                            } text-[16px] py-[12px] my-[8px] cursor-pointer relative`}
                         >
                             <AnimatePresence>
                                 {active === index && (
                                     <motion.div
-                                        className={`absolute top-0 left-0 w-full h-full bg-slate-200 shadow-custom-4`}
-                                        initial={{ opacity: 0, borderRadius: '999px' }}
+                                        className={`absolute top-0 left-0 w-full h-full bg-[var(--text-color)] shadow-custom-4`}
+                                        initial={{ opacity: 0.5, borderRadius: '999px' }}
                                         animate={{ opacity: 1, borderRadius: '999px' }}
-                                        exit={{ opacity: 0, borderRadius: '50px' }}
+                                        exit={{ opacity: 0, borderRadius: '0' }}
                                     ></motion.div>
                                 )}
                             </AnimatePresence>
                             <div className="relative z-10 whitespace-nowrap">
-                                <FontAwesomeIcon icon={item.icon} className="text-[24px]" />
-                                {open && <span className="ml-[8px] font-medium">{item.name}</span>}
+                                <FontAwesomeIcon icon={item.icon} className="text-[20px]" />
+                                {open && <span className="ml-[8px] font-medi    um">{item.name}</span>}
                             </div>
                         </div>
                     ))}
@@ -68,17 +68,17 @@ export default function SideBar() {
                     <div
                         className={`whitespace-nowrap flex ${
                             !open ? 'justify-center' : 'px-[16px] mx-[6px]'
-                        }  mb-[8px] text-3xl w-full py-[12px] cursor-pointer`}
+                        }  mb-[8px] text-[16px] w-full py-[12px] cursor-pointer`}
                     >
-                        <FontAwesomeIcon icon={faGear} className="text-[24px]" />
+                        <FontAwesomeIcon icon={faGear} className="text-[20px]" />
                         {open && <span className="ml-[8px] font-medium">Cài đặt</span>}
                     </div>
                     <div
                         className={`whitespace-nowrap flex ${
                             !open ? 'justify-center' : 'px-[16px] mx-[6px]'
-                        }  mb-[8px] text-3xl w-full py-[12px] cursor-pointer`}
+                        }  mb-[8px] text-[16px] w-full py-[12px] cursor-pointer`}
                     >
-                        <FontAwesomeIcon icon={faCircleQuestion} className="text-[24px]" />
+                        <FontAwesomeIcon icon={faCircleQuestion} className="text-[20px]" />
                         {open && <span className="ml-[8px] font-medium">Trợ giúp</span>}
                     </div>
                 </div>
