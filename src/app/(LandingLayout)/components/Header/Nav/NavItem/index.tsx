@@ -1,11 +1,6 @@
 import Link from 'next/link';
 
-const navDatas = [
-    { name: 'Trang chủ', to: 'home' },
-    { name: 'Về chúng tôi', to: 'AboutUs' },
-    { name: 'Lớp học', to: 'class' },
-    { name: 'Meeting', to: 'meet' },
-];
+const navDatas = [{ name: 'Trang chủ', to: '/' }];
 
 export default function NavItem() {
     return (
