@@ -9,7 +9,7 @@ import { AnimatePresence, PanInfo, motion, useDragControls } from 'framer-motion
 import SimpleBarReact from 'simplebar-react';
 import 'simplebar-react/dist/simplebar.min.css';
 import { coordinateItem, dragMode } from '../page';
-import directionOnXY from '~/utils/direction';
+import directionOnXY from '~/utils/directionOnXY';
 
 interface classItem {
     name: string;
