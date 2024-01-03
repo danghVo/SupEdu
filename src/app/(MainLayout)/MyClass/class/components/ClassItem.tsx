@@ -9,9 +9,9 @@ import { AnimatePresence, PanInfo, motion, useDragControls } from 'framer-motion
 import SimpleBarReact from 'simplebar-react';
 import 'simplebar-react/dist/simplebar.min.css';
 import { coordinateItem, dragMode } from '../page';
-import directionOnXY from '~/utils/directionOnXY';
 
 interface classItem {
+    id: number;
     name: string;
     teacher: {
         name: string;
@@ -27,14 +27,12 @@ interface classItem {
 
 export default function ClassItem({
     classItem,
-    id,
     constraintDrag,
     dragMode,
     handleSetDragMode,
 }: {
     classItem: classItem;
     constraintDrag: MutableRefObject<any>;
-    id: number;
     dragMode: dragMode;
     handleSetDragMode: Dispatch<SetStateAction<dragMode>>;
 }) {
@@ -53,8 +51,6 @@ export default function ClassItem({
     );
 
     const handleStartDrag = () => {
-        let coordinateItems: Array<coordinateItem | null> = [];
-
         handleSetDragMode({
             ...dragMode,
             enable: true,
@@ -66,43 +62,43 @@ export default function ClassItem({
 
     const handleDrag = (event: MouseEvent, info: PanInfo) => {
         if (dragMode.coordinateItems.length > 0 && dragTargetRef.current) {
-            // const { x: offsetX, y: offsetY } = info.offset;
             const width = dragTargetRef.current.clientWidth;
             const height = dragTargetRef.current.clientHeight;
-            const currentX = dragTargetRef.current.getBoundingClientRect().left;
-            const currentY = dragTargetRef.current.getBoundingClientRect().top;
-            const currentCoordinate = dragMode.coordinateItems.find((item) => item!.id === id);
+            let { left, top } = dragTargetRef.current.getBoundingClientRect();
+            const currentCoordinate = dragMode.coordinateItems.find((item) => item!.id === classItem.id);
 
             if (currentCoordinate) {
-                const offsetX =
-                    currentX < currentCoordinate.startX
-                        ? currentX - currentCoordinate.startX
-                        : currentX - currentCoordinate.endX + width;
-                const offsetY =
-                    currentY < currentCoordinate.startY
-                        ? currentY - currentCoordinate.startY
-                        : currentY - currentCoordinate.endY + height;
+                const centerPoint = {
+                    x: left + width / 2,
+                    y: top + height / 2,
+                };
 
                 const dropTarget = dragMode.coordinateItems.find(
                     (item) =>
                         item &&
-                        item.startX < currentX + width / 2 &&
-                        item.endX > currentX + width / 2 &&
-                        item.startY < currentY + height / 2 &&
-                        item.endY > currentY + height / 2 &&
-                        id != item.id,
+                        item.startX <= centerPoint.x &&
+                        item.endX >= centerPoint.x &&
+                        item.startY <= centerPoint.y &&
+                        item.endY >= centerPoint.y &&
+                        classItem.id != item.id,
                 );
 
                 if (dropTarget) {
-                    const moveDistance = directionOnXY(offsetX, offsetY, 32 + width, 64 + height);
-
-                    console.log(moveDistance);
+                    const moveDistance = {
+                        x: currentCoordinate.startX - dropTarget.startX,
+                        y: currentCoordinate.startY - dropTarget.startY,
+                    };
 
                     const coordinateItems = dragMode.coordinateItems.map((item) => {
                         if (item) {
                             return {
                                 ...item,
-                                id: dropTarget.id === item.id ? id : item.id === id ? dropTarget.id : item.id,
+                                id:
+                                    dropTarget.id === item.id
+                                        ? classItem.id
+                                        : item.id === classItem.id
+                                          ? dropTarget.id
+                                          : item.id,
                             };
                         } else return item;
                     });
@@ -110,40 +106,70 @@ export default function ClassItem({
                     handleSetDragMode((prev) => ({
                         ...prev,
                         coordinateItems,
-                        move: prev.move.map((item, index) =>
-                            dropTarget.id === index
-                                ? {
-                                      from: item.to,
-                                      to: { x: item.to.x + moveDistance.x, y: item.to.y + moveDistance.y },
-                                  }
-                                : item,
-                        ),
+                        distance: {
+                            ...prev.distance,
+                            [dropTarget.id]: {
+                                from: prev.distance[dropTarget.id].to,
+                                to: {
+                                    x: prev.distance[dropTarget.id].to.x + moveDistance.x,
+                                    y: prev.distance[dropTarget.id].to.y + moveDistance.y,
+                                },
+                            },
+                        },
                     }));
                 }
             }
         }
     };
 
-    const handleEndDrag = () => {
-        handleSetDragMode({
-            ...dragMode,
-            enable: false,
-            target: null,
-        });
+    const handleEndDrag = (event: MouseEvent, info: PanInfo) => {
+        const currentCoordinate = dragMode.coordinateItems.find((item) => item!.id === classItem.id);
+
+        if (currentCoordinate && dragTargetRef.current) {
+            const { left, top } = dragTargetRef.current.getBoundingClientRect();
+
+            const distance = dragMode.coordinateItems.reduce((accu, curr) => {
+                let item = { [curr!.id]: { from: { x: 0, y: 0 }, to: { x: 0, y: 0 } } };
+                if (classItem.id === curr!.id) {
+                    item = {
+                        [classItem.id]: {
+                            from: {
+                                x: left - currentCoordinate.startX,
+                                y: top - currentCoordinate.startY,
+                            },
+                            to: { x: 0, y: 0 },
+                        },
+                    };
+                }
+
+                return Object.assign(accu, item);
+            }, {});
+
+            handleSetDragMode({
+                ...dragMode,
+                enable: false,
+                target: null,
+                distance,
+            });
+        }
+
         setDragAble(false);
     };
 
     return (
         <motion.div
-            drag
+            key={classItem.id}
+            drag={dragAble}
             dragConstraints={constraintDrag}
-            dragSnapToOrigin={true}
-            dragListener={dragAble}
+            dragMomentum={false}
+            dragSnapToOrigin={dragAble}
             ref={dragTargetRef}
             onDrag={handleDrag}
             onDragEnd={handleEndDrag}
+            initial={dragMode.distance[classItem.id].from}
+            animate={dragMode.distance[classItem.id].to}
             className={`w-full h-fit shadow-custom-2 bg-main rounded-[25px] relative ${
-                dragAble ? 'cursor-move z-10' : 'cursor-pointer'
+                dragAble ? 'cursor-move z-20 border-black border-solid border-[2px]' : 'cursor-pointer z-10'
             } hover:translate-y-[4px]`}
         >
             <div className={`bg-main h-[100px] text-white relative rounded-t-[25px]`}>
