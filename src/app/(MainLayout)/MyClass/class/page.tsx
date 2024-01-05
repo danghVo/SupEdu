@@ -4,6 +4,8 @@ import image from '~/assets/image';
 import ClassItem from './components/ClassItem';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
+import InputOption from '~/components/Input/InputOption';
+import Selection from '~/components/Selection';
 
 export interface coordinateItem {
     id: number;
@@ -33,6 +35,7 @@ const classOfUserRaw = [
             from: 'from-[#0c7076]',
             to: 'to-[#9d0020]',
         },
+        isLive: true,
         exercises: [
             {
                 name: 'Task A',
@@ -60,6 +63,7 @@ const classOfUserRaw = [
             from: 'from-[#0c7076]',
             to: 'to-[#9d0020]',
         },
+        isLive: false,
         exercises: [
             {
                 name: 'Task A',
@@ -83,6 +87,7 @@ const classOfUserRaw = [
             from: 'from-[#0c7076]',
             to: 'to-[#9d0020]',
         },
+        isLive: false,
         exercises: [
             {
                 name: 'Task A',
@@ -95,6 +100,10 @@ const classOfUserRaw = [
         ],
     },
 ];
+
+const filter = [{ name: 'Trạng thái', choice: ['Đang hoạt động', 'Tất cả', 'Lớp học cũ'] }];
+
+const activeFilter = 'Đang hoạt động';
 
 export default function Page() {
     const [classOfUser, setClassOfUser] = useState(classOfUserRaw);
@@ -146,7 +155,26 @@ export default function Page() {
     }, [dragMode.coordinateItems]);
 
     return (
-        <div className="mt-[64px]">
+        <div className="mt-[32px]">
+            <div className="mb-[64px] flex items-center gap-[5px]">
+                {filter.map((item, index) => (
+                    <div
+                        key={index}
+                        className={` font-semibold text-[18px] ${
+                            item ? 'bg-[var(--text-color)] rounded-[25px]' : 'opacity-[0.6]'
+                        }`}
+                    >
+                        <Selection
+                            className="text-white"
+                            label="Lớp học"
+                            key={index}
+                            defaultSelection={item.choice[0]}
+                            onChange={() => {}}
+                            optionData={item.choice}
+                        />
+                    </div>
+                ))}
+            </div>
             <div
                 className="grid lg:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-x-[32px] gap-y-[64px] justify-center"
                 ref={constraintsRef}

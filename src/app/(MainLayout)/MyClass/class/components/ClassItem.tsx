@@ -22,6 +22,7 @@ interface classItem {
         from: string;
         to: string;
     };
+    isLive: boolean;
     exercises: Array<{ name: string; isDone: boolean }>;
 }
 
@@ -173,6 +174,11 @@ export default function ClassItem({
             } hover:translate-y-[4px]`}
         >
             <div className={`bg-main h-[100px] text-white relative rounded-t-[25px]`}>
+                {classItem.isLive && (
+                    <div className="absolute text-white bg-[rgba(204,0,0,0.9)] w-[45px] h-[45px] rounded-full top-[8px] right-[8px] z-10 font-bold flex items-center justify-center">
+                        Live
+                    </div>
+                )}
                 <div
                     className={`absolute top-0 h-full flex items-center w-full bg-gradient-to-r ${classItem.background.from} ${classItem.background.to} rounded-t-[25px] overflow-hidden`}
                 ></div>
