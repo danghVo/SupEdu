@@ -46,6 +46,7 @@ export default function InputOption({
                 value={value}
                 placeholder={placeholder}
                 label={label}
+                reset={false}
                 className={className}
                 onChange={handleInput}
                 onFocus={() => setOpenOption(true)}
@@ -55,7 +56,7 @@ export default function InputOption({
                 <div
                     onMouseEnter={() => setIsMouseInOption(true)}
                     onMouseLeave={() => setIsMouseInOption(false)}
-                    className="absolute top-[110%] shadow-custom-3 w-full bg-white overflow-hidden rounded-3xl py-4 z-10"
+                    className="absolute top-[110%] shadow-custom-3 w-full bg-white overflow-hidden rounded-3xl py-4 z-30"
                 >
                     {optionData.map((item, index) => (
                         <div
