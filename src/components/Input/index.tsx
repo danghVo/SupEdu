@@ -16,6 +16,7 @@ export interface InputProps {
     textArea?: boolean;
     inputType?: string;
     rules?: Array<rule>;
+    reset?: boolean;
     onChange: (e: React.ChangeEvent) => void;
     placeholder?: string;
     iconNode?: React.ReactNode;
@@ -43,6 +44,7 @@ function Input({
     inputType = 'text',
     textArea = false,
     rules = [],
+    reset = true,
     onChange,
     placeholder = '',
     className = '',
@@ -106,7 +108,7 @@ function Input({
                         onBlur={onBlur}
                     />
                 </div>
-                <FontAwesomeIcon icon={faXmark} className="cursor-pointer px-5 text-slate-600 text-3xl" />
+                {reset && <FontAwesomeIcon icon={faXmark} className="cursor-pointer px-5 text-slate-600 text-3xl" />}
             </div>
             {errMess && <div className={cs('input-message')}>{errMess}</div>}
         </div>
