@@ -7,7 +7,7 @@ export default function MyClassLayout({ children }: { children: React.ReactNode 
             <SideBar />
             <div className="grow bg-main">
                 {/* <Header /> */}
-                <div>{children}</div>
+                <div className="min-h-full">{children}</div>
             </div>
         </div>
     );

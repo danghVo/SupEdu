@@ -155,7 +155,9 @@ export default function Page() {
     }, [dragMode.coordinateItems]);
 
     return (
-        <div className="mt-[32px]">
+        <div className="px-[24px] py-[32px] min-h-full mx-[12px]">
+            <div className="font-bold text-[32px] mb-[32px]">Các lớp học của bạn</div>
+
             <div className="mb-[64px] flex items-center gap-[5px]">
                 {filter.map((item, index) => (
                     <div
