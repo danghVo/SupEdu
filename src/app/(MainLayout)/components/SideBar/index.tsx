@@ -26,8 +26,8 @@ export default function SideBar() {
             onMouseEnter={() => setOpen(true)}
             onMouseLeave={() => setOpen(false)}
             whileHover={{ width: '250px' }}
-            className={`h-screen px-[4px] border-r-2 border-slate-300 border-solid relative ${
-                open ? 'w-[250px]' : 'w-[50px]'
+            className={`fixed h-screen px-[4px] border-r-2 border-slate-300 border-solid z-50 bg-white ${
+                open ? 'w-[250px] shadow-custom-1' : 'w-[50px]'
             } overflow-hidden flex flex-col justify-between`}
         >
             <div>
