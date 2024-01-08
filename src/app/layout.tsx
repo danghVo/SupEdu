@@ -4,6 +4,7 @@ import { config } from '@fortawesome/fontawesome-svg-core';
 import '@fortawesome/fontawesome-svg-core/styles.css';
 
 import '~/styles/globals.css';
+import 'simplebar-react/dist/simplebar.min.css';
 
 config.autoAddCss = false;
 
