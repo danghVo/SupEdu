@@ -3,14 +3,14 @@ import { faCheckCircle, faEllipsisV, faRightFromBracket, faUpDownLeftRight } fro
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { StaticImport } from 'next/dist/shared/lib/get-img-props';
 import Image from 'next/image';
-import { Dispatch, MutableRefObject, SetStateAction, useMemo, useRef, useState } from 'react';
+import { Dispatch, MutableRefObject, ReactEventHandler, SetStateAction, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, PanInfo, motion, useDragControls } from 'framer-motion';
 
 import SimpleBarReact from 'simplebar-react';
 import 'simplebar-react/dist/simplebar.min.css';
 import { coordinateItem, dragMode } from '../page';
 
-interface classItem {
+export interface classItem {
     id: number;
     name: string;
     teacher: {
@@ -193,7 +193,13 @@ export default function ClassItem({
                 </div>
             </div>
             <div className="bg-white">
-                <div onClick={() => setShowDetailTask((prev) => !prev)} className="h-fit px-[12px] py-[12px]">
+                <div
+                    onClick={(event: React.MouseEvent) => {
+                        event.stopPropagation();
+                        setShowDetailTask((prev) => !prev);
+                    }}
+                    className="h-fit px-[12px] py-[12px]"
+                >
                     <div className="flex items-center justify-between mb-[4px] font-semibold">
                         <div>Bài tập</div>
                         <div>{progress}%</div>
