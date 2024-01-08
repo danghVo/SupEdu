@@ -1,3 +1,7 @@
+import image from '~/assets/image';
+import Calendar from '~/components/Calendar';
+import RightSideBar from './components/RightSideBar';
+
 export async function generateStaticParams() {
     // fetch class data
 
@@ -8,7 +12,7 @@ export async function generateStaticParams() {
     ];
 }
 
-const classItem = {
+const data = {
     id: 0,
     name: 'Lớp A',
     teacher: {
@@ -39,10 +43,10 @@ const classItem = {
 
 export default function Page({ params }: { params: { id: string } }) {
     return (
-        <div className="flex">
+        <div className="flex h-screen">
             <div className="grow"></div>
 
-            <div className="w-[300px] bg-white"></div>
+            <RightSideBar />
         </div>
     );
 }
