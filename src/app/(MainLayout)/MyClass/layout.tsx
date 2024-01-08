@@ -5,9 +5,9 @@ export default function MyClassLayout({ children }: { children: React.ReactNode 
     return (
         <div className="min-h-screen flex">
             <SideBar />
-            <div className="grow bg-main">
+            <div className="grow bg-main ml-[48px]">
                 {/* <Header /> */}
-                <div className="min-h-full">{children}</div>
+                {children}
             </div>
         </div>
     );
