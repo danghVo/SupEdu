@@ -1,6 +1,6 @@
-import image from '~/assets/image';
-import Calendar from '~/components/Calendar';
 import RightSideBar from './components/RightSideBar';
+import { classDetailSections } from '~/constant';
+import Main from './components/Main';
 
 export async function generateStaticParams() {
     // fetch class data
@@ -44,8 +44,7 @@ const data = {
 export default function Page({ params }: { params: { id: string } }) {
     return (
         <div className="flex h-screen">
-            <div className="grow"></div>
-
+            <Main />
             <RightSideBar />
         </div>
     );
