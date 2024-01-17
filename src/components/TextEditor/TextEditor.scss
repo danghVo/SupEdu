@@ -1,0 +1,36 @@
+.DraftEditor-root .public-DraftEditor-content {
+    min-height: 180px;
+    border: 2px black solid;
+    margin-top: 12px;
+    border-radius: 4px;
+    padding: 12px 16px;
+}
+
+.DraftEditor-root *::selection {
+    background-color: gray;
+    color: black;
+}
+
+.public-DraftStyleDefault-orderedListItem:before {
+    font-weight: 600;
+}
+
+.apply-center div {
+    text-align: center;
+}
+
+.apply-left div {
+    text-align: left;
+}
+
+.apply-right div {
+    text-align: right;
+}
+
+.apply-justify div {
+    text-align: justify;
+}
+
+.youtube-input {
+    // background-color: black;
+}
