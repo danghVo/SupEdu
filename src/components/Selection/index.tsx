@@ -14,9 +14,9 @@ export default function Selection({
     className?: string;
     onChange: (selection: string) => void;
     bgTheme?: string;
-    defaultSelection: string;
+    defaultSelection?: string;
 }) {
-    const [selection, setSelection] = useState(defaultSelection);
+    const [selection, setSelection] = useState(defaultSelection || optionData[0]);
     const [openOption, setOpenOption] = useState(false);
 
     const handleChooseSelection = (event: React.MouseEvent, selection: string) => {
