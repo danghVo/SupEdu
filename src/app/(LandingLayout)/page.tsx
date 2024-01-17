@@ -1,7 +1,6 @@
 'use client';
 
 import SimpleBarReact from 'simplebar-react';
-import 'simplebar-react/dist/simplebar.min.css';
 
 export default function Landing() {
     return (
