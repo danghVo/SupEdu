@@ -2,11 +2,9 @@
 
 import { faCaretLeft, faCaretRight } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import Image from 'next/image';
 import { useEffect, useState } from 'react';
 
 import { day, month } from '~/constant';
-import image from '~/assets/image';
 import getDaysOfMonth from '~/utils/getDaysOfMonth';
 
 const today = new Date();
@@ -61,7 +59,6 @@ export default function Calendar({
     const markDate = (fullDateString: string) => {
         if (markedDays) {
             if (markedDays.includes(fullDateString)) {
-                console.log(fullDateString);
                 return Date.parse(fullDateString) > Date.now() ? 'bg-slate-400 text-white' : 'bg-slate-800 text-white';
             }
         } else return '';
