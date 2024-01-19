@@ -41,7 +41,7 @@ export default function RightSideBar() {
             classNames={{ track: 'simplebar-track' }}
             forceVisible="y"
             style={{ height: '100vh' }}
-            className="w-[320px] bg-white pb-[32px]"
+            className="lg:w-[300px] sm:w-[200px]  bg-white pb-[32px]"
         >
             <div className="flex flex-col items-center justify-center mt-[18px] mb-[28px]">
                 <div className="mb-[8px] p-[4px]">
