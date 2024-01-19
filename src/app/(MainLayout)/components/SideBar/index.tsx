@@ -8,8 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChalkboard, faGear } from '@fortawesome/free-solid-svg-icons';
 
 import image from '~/assets/image';
-import * as Icons from '~/assets/icons';
-
+    
 const mainItem = [
     { name: 'Lớp học', to: '/MyClass/Class', icon: faChalkboard },
     { name: 'Chat', to: '/MyClass/Chat', icon: faComment },
