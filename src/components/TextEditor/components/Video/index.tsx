@@ -5,7 +5,7 @@ import { Suspense } from 'react';
 
 export default function Video(props: any) {
     return (
-        <div className="relative px-[12px] my-[12px] mr-[14px]">
+        <div {...props.blockProps} className="relative px-[12px] my-[12px] mr-[14px]">
             {props.blockProps.src ? (
                 <Suspense
                     fallback={
@@ -31,7 +31,10 @@ export default function Video(props: any) {
             )}
             <div
                 className="absolute h-[40px] flex items-center top-0 right-[-10px] text-[18px] bg-black text-white px-[4px] rounded-r-lg cursor-pointer"
-                onClick={() => props.blockProps.handleRemoveBlock(props.blockProps.blockId)}
+                onClick={(e) => {
+                    e.stopPropagation();
+                    props.blockProps.handleRemoveBlock(props.blockProps.blockId);
+                }}
             >
                 <FontAwesomeIcon icon={faXmark} />
             </div>
