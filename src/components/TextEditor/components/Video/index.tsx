@@ -16,16 +16,21 @@ export default function Video(props: any) {
                 >
                     <iframe
                         className="w-full h-[350px]"
-                        src={'https://www.youtube.com/embed/' + props.blockProps.src.split('?v=')[1]}
+                        src={'https://www.youtube.com/embed/' + props.blockProps.src}
                     ></iframe>
                 </Suspense>
             ) : (
-                <div className="bg-slate-200 px-[12px] py-[8px] rounded-l-lg">
-                    <EditorBlock {...props} />
-                </div>
+                <>
+                    <div className="bg-slate-200 px-[12px] py-[8px] rounded-l-lg">
+                        <EditorBlock {...props} />
+                        {props.blockProps.isError && (
+                            <div className="text-red-500 mt-[12px] pt-[2px]">Đường dẫn không đúng định dạng</div>
+                        )}
+                    </div>
+                </>
             )}
             <div
-                className="absolute h-full max-h-[40px] flex items-center top-0 right-[-10px] text-[18px] bg-black text-white px-[4px] rounded-r-lg cursor-pointer"
+                className="absolute h-[40px] flex items-center top-0 right-[-10px] text-[18px] bg-black text-white px-[4px] rounded-r-lg cursor-pointer"
                 onClick={() => props.blockProps.handleRemoveBlock(props.blockProps.blockId)}
             >
                 <FontAwesomeIcon icon={faXmark} />
