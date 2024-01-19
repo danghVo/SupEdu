@@ -18,7 +18,7 @@ export default function Layout(props: {
         initital: { opacity: 0, x: 0 },
         animate: { opacity: 1, x: 0 },
     });
-    const [currentForm, setCurrentForm] = useState(0);
+    const [currentForm, setCurrentForm] = useState(1);
 
     const handleBackward = () => {
         if (currentForm > 0) {
