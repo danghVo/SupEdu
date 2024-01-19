@@ -14,7 +14,7 @@ export default function PostCard({}) {
     const [buttonAction, setButtonAction] = useState({ label: buttonActionName[0], openOption: false });
 
     return (
-        <div className="bg-white w-[780px] shadow-custom-2 rounded-[16px] py-[12px] px-[16px]">
+        <div className="bg-white w-[70%] shadow-custom-2 rounded-[16px] py-[12px] px-[16px]">
             <Selection
                 optionData={postType}
                 label="Loại"
