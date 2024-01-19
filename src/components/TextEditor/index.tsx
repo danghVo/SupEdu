@@ -37,6 +37,8 @@ import Video from './components/Video';
 import Link from './components/Link';
 import dynamic from 'next/dynamic';
 import getVideoId from '~/utils/getVideoId';
+import getCurrentBlockIndex from './utils/getCurrentBlockIndex';
+import createBlock from './utils/createBlock';
 
 const Editor = dynamic(() => import('draft-js').then((mod) => mod.Editor), {
     ssr: false,
@@ -116,6 +118,7 @@ export default function TextEditor({ className = '', label }: { className?: stri
     });
 
     const [link, setLink] = useState('');
+    const [isCreateNewBlock, setIsCreateNewBlock] = useState(false)
 
     const wrapperRef = useRef<HTMLDivElement | null>(null);
     const toolboxRef = useRef<HTMLDivElement | null>(null);
@@ -155,6 +158,13 @@ export default function TextEditor({ className = '', label }: { className?: stri
 
         setToolboxType((prev) => ({ ...prev, offsetTop }));
     }, [editor.state, toolboxType.isFocus]);
+
+    useEffect(() => {
+        if(isCreateNewBlock) {
+            createBlock('', '', editor.state, handleChange,getCurrentBlockIndex(editor.state))
+            setIsCreateNewBlock(false)
+        }
+    }, [isCreateNewBlock])
 
     const handleChange = (editorState: EditorState) => {
         setEditor({
@@ -238,36 +248,7 @@ export default function TextEditor({ className = '', label }: { className?: stri
     const handleType = (e: SyntheticEvent, command: string) => {
         e.preventDefault();
         if (command === 'add-youtube-link') {
-            const newContentBlock = new ContentBlock({
-                key: genKey(),
-                type: 'add-youtube-link',
-                text: '',
-            });
-            const contentState = editor.state.getCurrentContent();
-            const oldBlockMap = contentState.getBlockMap();
-            const currentBlockKey = contentState.getBlockForKey(editor.state.getSelection().getAnchorKey()).getKey();
-            const currentBlockIndex = oldBlockMap
-                .toArray()
-                .findIndex((value, index) => value.getKey() === currentBlockKey);
-            const newBlockMap = oldBlockMap
-                .toArray()
-                .reduce(
-                    (accu: any, curr, index) =>
-                        index === currentBlockIndex ? [...accu, curr, newContentBlock] : [...accu, curr],
-                    [],
-                );
-
-            // const newBlockMap = oldBlockMap.set(newContentBlock.toObject().key, newContentBlock);
-
-            const newEditorState = EditorState.push(
-                editor.state,
-                ContentState.createFromBlockArray(newBlockMap),
-                'insert-fragment',
-            );
-
-            return handleChange(
-                EditorState.forceSelection(newEditorState, SelectionState.createEmpty(newContentBlock.toObject().key)),
-            );
+            return createBlock('add-youtube-link', '', editor.state, handleChange, getCurrentBlockIndex(editor.state));
         }
 
         let newEditorState = RichUtils.toggleBlockType(editor.state, command);
@@ -290,7 +271,8 @@ export default function TextEditor({ className = '', label }: { className?: stri
             const currentSelection = editor.state.getSelection().getAnchorKey();
             const currentBlock = currentContent.getBlockForKey(currentSelection);
             if (getVideoId(currentBlock.getText())) {
-                handleChange(RichUtils.toggleBlockType(editorState, 'loadYoutubeVideo'));
+                handleChange(RichUtils.toggleBlockType(editorState, 'loadYoutubeVideo'))
+                setIsCreateNewBlock(true)
                 return 'handled';
             } else return 'not-handled';
         } else return 'not-handled';
@@ -308,6 +290,7 @@ export default function TextEditor({ className = '', label }: { className?: stri
                     isError: contentBlock.getText() && !videoId,
                     blockId: contentBlock.toObject().key,
                     handleRemoveBlock: handleRemoveBlock,
+                    onClick: () => createBlock('', '', editor.state, handleChange,getCurrentBlockIndex(editor.state))
                 },
             };
         }
