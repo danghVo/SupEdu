@@ -19,6 +19,8 @@ import {
     faAlignLeft,
     faAlignRight,
     faBold,
+    faCaretLeft,
+    faCaretRight,
     faEllipsis,
     faItalic,
     faLink,
@@ -213,7 +215,7 @@ export default function TextEditor({ className = '', label }: { className?: stri
     const handleBlurEditor = () => {
         if (!inputLink.isFocus) {
             setToolboxOffsetStyle(null);
-            setToolboxType((prev) => ({ ...prev, isFocus: false, isOpen: false }));
+            // setToolboxType((prev) => ({ ...prev, isFocus: false, isOpen: false }));
         }
     };
 
@@ -225,26 +227,24 @@ export default function TextEditor({ className = '', label }: { className?: stri
     };
 
     const handleBlockStyle = (contentBlock: ContentBlock) => {
-        switch (contentBlock.getType()) {
-            case 'center': {
-                return 'apply-center';
-            }
-            case 'left': {
-                return 'apply-left';
-            }
-            case 'right': {
-                return 'apply-right';
-            }
-            case 'justify': {
-                return 'apply-justify';
-            }
-            case 'youtubeInput': {
-                return 'my-[12px] px-[16px] py-[12px] bg-slate-100';
-            }
-            default: {
-                return '';
-            }
+        const boxTypes = contentBlock.getType();
+        let cssTypes = '';
+
+        if (boxTypes.includes('youtubeInput')) {
+            return 'my-[12px] px-[16px] py-[12px] bg-slate-100';
         }
+
+        const position = ['left', 'right', 'center', 'justify'].forEach((item) => {
+            if (boxTypes.includes('position-' + item)) {
+                cssTypes += `position-apply-${item} `;
+            }
+        });
+
+        const fontSize = ['normal', 'medium', 'big'].forEach((item) => {
+            if (boxTypes.includes('size-' + item)) cssTypes += `size-${item} `;
+        });
+
+        return cssTypes;
     };
 
     const handleToogleTypeBox = (e: SyntheticEvent) => {
@@ -253,13 +253,29 @@ export default function TextEditor({ className = '', label }: { className?: stri
         setToolboxType((prev) => ({ ...prev, isOpen: !prev.isOpen }));
     };
 
-    const handleType = (e: SyntheticEvent, command: string) => {
+    const handleType = (e: SyntheticEvent, command: string, type: string) => {
         e.preventDefault();
         if (command === 'add-youtube-link') {
             return createBlock('add-youtube-link', '', editor.state, handleChange, getCurrentBlockIndex(editor.state));
         }
 
-        let newEditorState = RichUtils.toggleBlockType(editor.state, command);
+        const currentBlock = editor.state
+            .getCurrentContent()
+            .getBlockForKey(editor.state.getSelection().getAnchorKey());
+        let currentType = currentBlock.getType();
+        let newType = currentType;
+
+        if (currentType.includes(type)) {
+            newType = currentType
+                .split(' ')
+                .filter((item: string) => !item.includes(type))
+                .join(' ');
+        }
+        if (!currentType.includes(`${type}-${command}`)) {
+            newType += ` ${type}-${command}`;
+        }
+
+        let newEditorState = RichUtils.toggleBlockType(editor.state, newType);
 
         handleChange(newEditorState);
     };
@@ -286,6 +302,34 @@ export default function TextEditor({ className = '', label }: { className?: stri
         } else return 'not-handled';
     };
 
+    const handleRemoveBlock = (removeKey: string) => {
+        const oldBlockMap = editor.state.getCurrentContent().getBlockMap();
+        let prevIndex = 0;
+        const newBlockMap = oldBlockMap.toArray().filter((value, index, blockMap) => {
+            if (value.getKey() === removeKey) {
+                prevIndex = index - 1;
+                return false;
+            } else {
+                return true;
+            }
+        });
+
+        const newEditorState = EditorState.push(
+            editor.state,
+            ContentState.createFromBlockArray(newBlockMap),
+            'remove-range',
+        );
+
+        if (prevIndex >= 0) {
+            const blockPreRemovedBlock = oldBlockMap.toArray()[prevIndex];
+            const newSelectionState = SelectionState.createEmpty(blockPreRemovedBlock!.getKey()).merge({
+                anchorOffset: blockPreRemovedBlock!.getLength(),
+                focusOffset: blockPreRemovedBlock!.getLength(),
+            });
+            handleChange(EditorState.forceSelection(newEditorState, newSelectionState));
+        } else handleChange(newEditorState);
+    };
+
     const customRenderBlock = (contentBlock: ContentBlock) => {
         const type = contentBlock.getType();
         if (type === 'add-youtube-link' || type === 'loadYoutubeVideo') {
@@ -302,27 +346,6 @@ export default function TextEditor({ className = '', label }: { className?: stri
                 },
             };
         }
-    };
-
-    const handleRemoveBlock = (key: string) => {
-        const oldBlockMap = editor.state.getCurrentContent().getBlockMap();
-        const newBlockMap = oldBlockMap.delete(key);
-        const newEditorState = EditorState.push(
-            editor.state,
-            ContentState.createFromBlockArray(newBlockMap.toArray()),
-            'remove-range',
-        );
-        const indexOfRemovedBlock = oldBlockMap.toArray().findIndex((item) => item.getKey() === key);
-        if (indexOfRemovedBlock !== 0) {
-            const blockPreRemovedBlock = oldBlockMap
-                .toArray()
-                .find((value, index) => index === indexOfRemovedBlock - 1);
-            const newSelectionState = SelectionState.createEmpty(blockPreRemovedBlock!.getKey()).merge({
-                anchorOffset: blockPreRemovedBlock!.getLength(),
-                focusOffset: blockPreRemovedBlock!.getLength(),
-            });
-            handleChange(EditorState.forceSelection(newEditorState, newSelectionState));
-        } else handleChange(newEditorState);
     };
 
     const handleOpenInputLink = (e: any) => {
@@ -435,11 +458,8 @@ export default function TextEditor({ className = '', label }: { className?: stri
                     </AnimatePresence>
                     <AnimatePresence>
                         {toolboxType.isFocus && (
-                            <motion.div
+                            <div
                                 className={`absolute cursor-pointer flex flex-col items-end gap-[8px]`}
-                                initial={{ opacity: 0.5 }}
-                                animate={{ opacity: 1 }}
-                                exit={{ opacity: 0 }}
                                 style={
                                     toolboxType.offsetTop !== null
                                         ? {
@@ -450,19 +470,22 @@ export default function TextEditor({ className = '', label }: { className?: stri
                                         : {}
                                 }
                             >
-                                <div
+                                <motion.div
                                     onMouseDown={handleToogleTypeBox}
+                                    initial={{ opacity: 0.5 }}
+                                    animate={{ opacity: 1 }}
+                                    exit={{ opacity: 0 }}
                                     className="bg-white shadow-custom-2 w-[30px] h-[30px] rounded-full text-[18px] flex items-center justify-center"
                                 >
                                     <FontAwesomeIcon icon={faEllipsis} />
-                                </div>
+                                </motion.div>
                                 <AnimatePresence>
                                     {toolboxType.isOpen && (
                                         <motion.div
                                             className="bg-white shadow-custom-2 rounded-lg grid grid-cols-2 overflow-hidden"
                                             initial={{ height: '0', width: '0' }}
                                             animate={{ height: 'fit-content', width: 'fit-content' }}
-                                            exit={{ height: '0', width: '0' }}
+                                            exit={{ height: 0, width: 0 }}
                                         >
                                             {[
                                                 {
@@ -495,10 +518,10 @@ export default function TextEditor({ className = '', label }: { className?: stri
                                                 return (
                                                     <div
                                                         key={index}
-                                                        className={` py-[8px] px-[12px] text-[16px] transition-all ${
+                                                        className={` py-[8px] px-[12px] text-[16px] transition-all flex justify-center ${
                                                             isActive ? 'text-blue-500' : ''
                                                         }`}
-                                                        onMouseDown={(e) => handleType(e, icon.command)}
+                                                        onMouseDown={(e) => handleType(e, icon.command, 'position')}
                                                     >
                                                         <FontAwesomeIcon icon={icon.icon} />
                                                     </div>
@@ -507,7 +530,7 @@ export default function TextEditor({ className = '', label }: { className?: stri
                                         </motion.div>
                                     )}
                                 </AnimatePresence>
-                            </motion.div>
+                            </div>
                         )}
                     </AnimatePresence>
 
