@@ -1,16 +1,12 @@
 'use client';
 
 import { SyntheticEvent, useEffect, useRef, useState } from 'react';
-
 import {
     ContentBlock,
     ContentState,
     EditorState,
-    Entity,
-    // Editor,
     RichUtils,
     SelectionState,
-    genKey,
     getDefaultKeyBinding,
     getVisibleSelectionRect,
     convertFromRaw,
@@ -30,15 +26,42 @@ import {
     faUnderline,
     faXmark,
 } from '@fortawesome/free-solid-svg-icons';
-import { AnimatePresence, easeIn, motion } from 'framer-motion';
-import './TextEditor.scss';
 import { faYoutube } from '@fortawesome/free-brands-svg-icons';
+import { AnimatePresence, motion } from 'framer-motion';
+import dynamic from 'next/dynamic';
+
 import Video from './components/Video';
 import Link from './components/Link';
-import dynamic from 'next/dynamic';
 import getVideoId from '~/utils/getVideoId';
 import getCurrentBlockIndex from './utils/getCurrentBlockIndex';
 import createBlock from './utils/createBlock';
+import './TextEditor.scss';
+
+// type
+interface MyEditorState {
+    state: EditorState;
+    style: Array<string>;
+    type: string;
+}
+
+interface ToolboxOffsetStype {
+    id: number;
+    top: number;
+    left: number;
+}
+
+interface ToolboxType {
+    offsetTop: number;
+    isOpen: boolean;
+    isFocus: boolean;
+}
+
+interface InputLink {
+    isOpen: boolean;
+    isFocus: boolean;
+    value: string;
+    selectionState: SelectionState | null;
+}
 
 const Editor = dynamic(() => import('draft-js').then((mod) => mod.Editor), {
     ssr: false,
@@ -69,11 +92,7 @@ const decorator = new CompositeDecorator([
 ]);
 
 export default function TextEditor({ className = '', label }: { className?: string; label: string }) {
-    const [editor, setEditor] = useState<{
-        state: EditorState;
-        style: Array<string>;
-        type: string;
-    }>({
+    const [editor, setEditor] = useState<MyEditorState>({
         state: EditorState.createWithContent(
             convertFromRaw({
                 entityMap: {},
@@ -94,23 +113,11 @@ export default function TextEditor({ className = '', label }: { className?: stri
         type: '',
     });
 
-    const [toolboxOffsetStyle, setToolboxOffsetStyle] = useState<{
-        top: number;
-        left: number;
-    } | null>(null);
+    const [toolboxOffsetStyle, setToolboxOffsetStyle] = useState<ToolboxOffsetStype | null>(null);
 
-    const [toolboxType, setToolboxType] = useState<{
-        offsetTop: number;
-        isOpen: boolean;
-        isFocus: boolean;
-    }>({ offsetTop: 16, isOpen: false, isFocus: false });
+    const [toolboxType, setToolboxType] = useState<ToolboxType>({ offsetTop: 16, isOpen: false, isFocus: false });
 
-    const [inputLink, setInputLink] = useState<{
-        isOpen: boolean;
-        isFocus: boolean;
-        value: string;
-        selectionState: SelectionState | null;
-    }>({
+    const [inputLink, setInputLink] = useState<InputLink>({
         isOpen: false,
         value: '',
         isFocus: false,
@@ -118,7 +125,7 @@ export default function TextEditor({ className = '', label }: { className?: stri
     });
 
     const [link, setLink] = useState('');
-    const [isCreateNewBlock, setIsCreateNewBlock] = useState(false)
+    const [isCreateNewBlock, setIsCreateNewBlock] = useState(false);
 
     const wrapperRef = useRef<HTMLDivElement | null>(null);
     const toolboxRef = useRef<HTMLDivElement | null>(null);
@@ -142,6 +149,7 @@ export default function TextEditor({ className = '', label }: { className?: stri
             ) {
                 if (startOffset !== endOffset) {
                     setToolboxOffsetStyle({
+                        id: Math.random(),
                         top: selectionRect.top - wrapperRect.top - 16,
                         left: selectionRect.left - wrapperRect.left + (selectionRect.width * 50) / 100,
                     });
@@ -160,11 +168,11 @@ export default function TextEditor({ className = '', label }: { className?: stri
     }, [editor.state, toolboxType.isFocus]);
 
     useEffect(() => {
-        if(isCreateNewBlock) {
-            createBlock('', '', editor.state, handleChange,getCurrentBlockIndex(editor.state))
-            setIsCreateNewBlock(false)
+        if (isCreateNewBlock) {
+            createBlock('', '', editor.state, handleChange, getCurrentBlockIndex(editor.state));
+            setIsCreateNewBlock(false);
         }
-    }, [isCreateNewBlock])
+    }, [isCreateNewBlock]);
 
     const handleChange = (editorState: EditorState) => {
         setEditor({
@@ -205,7 +213,7 @@ export default function TextEditor({ className = '', label }: { className?: stri
     const handleBlurEditor = () => {
         if (!inputLink.isFocus) {
             setToolboxOffsetStyle(null);
-            setToolboxType((prev) => ({ ...prev, isFocus: false }));
+            setToolboxType((prev) => ({ ...prev, isFocus: false, isOpen: false }));
         }
     };
 
@@ -239,10 +247,10 @@ export default function TextEditor({ className = '', label }: { className?: stri
         }
     };
 
-    const handleOpenTypeBox = (e: SyntheticEvent) => {
+    const handleToogleTypeBox = (e: SyntheticEvent) => {
         e.preventDefault();
 
-        setToolboxType((prev) => ({ ...prev, isOpen: true }));
+        setToolboxType((prev) => ({ ...prev, isOpen: !prev.isOpen }));
     };
 
     const handleType = (e: SyntheticEvent, command: string) => {
@@ -271,8 +279,8 @@ export default function TextEditor({ className = '', label }: { className?: stri
             const currentSelection = editor.state.getSelection().getAnchorKey();
             const currentBlock = currentContent.getBlockForKey(currentSelection);
             if (getVideoId(currentBlock.getText())) {
-                handleChange(RichUtils.toggleBlockType(editorState, 'loadYoutubeVideo'))
-                setIsCreateNewBlock(true)
+                handleChange(RichUtils.toggleBlockType(editorState, 'loadYoutubeVideo'));
+                setIsCreateNewBlock(true);
                 return 'handled';
             } else return 'not-handled';
         } else return 'not-handled';
@@ -290,7 +298,7 @@ export default function TextEditor({ className = '', label }: { className?: stri
                     isError: contentBlock.getText() && !videoId,
                     blockId: contentBlock.toObject().key,
                     handleRemoveBlock: handleRemoveBlock,
-                    onClick: () => createBlock('', '', editor.state, handleChange,getCurrentBlockIndex(editor.state))
+                    onClick: () => createBlock('', '', editor.state, handleChange, getCurrentBlockIndex(editor.state)),
                 },
             };
         }
@@ -353,78 +361,82 @@ export default function TextEditor({ className = '', label }: { className?: stri
                 <div className="text-[18px] font-semibold mb-[12px] font-bold">{label}:</div>
 
                 <div ref={wrapperRef} className="relative" onKeyDown={handleUndo}>
-                    {toolboxOffsetStyle && (
-                        <motion.div
-                            ref={toolboxRef}
-                            key={0}
-                            initial={{ opacity: 0.5 }}
-                            animate={{ opacity: 1 }}
-                            className={`absolute z-40 shadow-custom-1 bg-white flex items-center justify-center text-[14px] px-[12px] py-[4px] rounded-lg border-t-4 border-black after:content-[''] after:absolute after:top-full after:inset-x-2/4 after:border-x-[8px] after:border-y-[8px] after:border-transparent after:border-t-white after:translate-x-[-50%]`}
-                            style={{
-                                top: `${toolboxOffsetStyle.top}px`,
-                                left: `${toolboxOffsetStyle.left}px`,
-                                transform: 'translate(-50%, -100%)',
-                            }}
-                        >
-                            {inputLink.isOpen ? (
-                                <div className="w-[180px] flex items-center gap-[4px] divide-x">
-                                    <input
-                                        ref={inputRef}
-                                        autoFocus
-                                        className="focus:outline-none px-[4px] py-[4px] w-full"
-                                        value={inputLink.value}
-                                        onFocus={(e) => setInputLink((prev) => ({ ...prev, isFocus: true }))}
-                                        onChange={(e) => setInputLink((prev) => ({ ...prev, value: e.target.value }))}
-                                        onKeyUp={handlePressInputLink}
-                                    />
-                                    <FontAwesomeIcon
-                                        icon={faXmark}
-                                        onMouseDown={handleClearLink}
-                                        className="cursor-pointer pl-[8px]"
-                                    />
-                                </div>
-                            ) : (
-                                <div className="flex items-center justify-center gap-[8px]">
-                                    {[
-                                        { name: faBold, command: 'BOLD' },
-                                        { name: faItalic, command: 'ITALIC' },
-                                        { name: faUnderline, command: 'UNDERLINE' },
-                                    ].map((icon, index) => {
-                                        const isActive = editor.style.includes(icon.command);
-
-                                        return (
-                                            <div
-                                                key={index}
-                                                className={`px-[6px] py-[2px] rounded-lg cursor-pointer relative transition-all ${
-                                                    isActive ? 'text-blue-500' : ''
-                                                }`}
-                                                onMouseDown={(e) => handleTextStyle(e, icon.command)}
-                                            >
-                                                <FontAwesomeIcon
-                                                    icon={icon.name}
-                                                    className="relative z-10 select-none"
-                                                />
-                                            </div>
-                                        );
-                                    })}
-                                    <div
-                                        className={`px-[6px] py-[2px] rounded-lg cursor-pointer relative transition-all ${
-                                            link ? 'text-blue-500' : ''
-                                        }`}
-                                        onMouseDown={handleOpenInputLink}
-                                    >
-                                        <FontAwesomeIcon icon={faLink} />
+                    <AnimatePresence>
+                        {toolboxOffsetStyle && (
+                            <motion.div
+                                ref={toolboxRef}
+                                key={toolboxOffsetStyle.id}
+                                initial={{ opacity: 0.5 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.2 }}
+                                className={`absolute z-40 shadow-custom-1 bg-white flex items-center justify-center text-[14px] px-[12px] py-[4px] rounded-lg border-t-4 border-black after:content-[''] after:absolute after:top-full after:inset-x-2/4 after:border-x-[8px] after:border-y-[8px] after:border-transparent after:border-t-white after:translate-x-[-50%]`}
+                                style={{
+                                    top: `${toolboxOffsetStyle.top}px`,
+                                    left: `${toolboxOffsetStyle.left}px`,
+                                    transform: 'translate(-50%, -100%)',
+                                }}
+                            >
+                                {inputLink.isOpen ? (
+                                    <div className="w-[180px] flex items-center gap-[4px] divide-x">
+                                        <input
+                                            ref={inputRef}
+                                            autoFocus
+                                            className="focus:outline-none px-[4px] py-[4px] w-full"
+                                            value={inputLink.value}
+                                            onFocus={(e) => setInputLink((prev) => ({ ...prev, isFocus: true }))}
+                                            onChange={(e) =>
+                                                setInputLink((prev) => ({ ...prev, value: e.target.value }))
+                                            }
+                                            onKeyUp={handlePressInputLink}
+                                        />
+                                        <FontAwesomeIcon
+                                            icon={faXmark}
+                                            onMouseDown={handleClearLink}
+                                            className="cursor-pointer pl-[8px]"
+                                        />
                                     </div>
-                                </div>
-                            )}
-                        </motion.div>
-                    )}
+                                ) : (
+                                    <div className="flex items-center justify-center gap-[8px]">
+                                        {[
+                                            { name: faBold, command: 'BOLD' },
+                                            { name: faItalic, command: 'ITALIC' },
+                                            { name: faUnderline, command: 'UNDERLINE' },
+                                        ].map((icon, index) => {
+                                            const isActive = editor.style.includes(icon.command);
+
+                                            return (
+                                                <div
+                                                    key={index}
+                                                    className={`px-[6px] py-[2px] rounded-lg cursor-pointer relative transition-all ${
+                                                        isActive ? 'text-blue-500' : ''
+                                                    }`}
+                                                    onMouseDown={(e) => handleTextStyle(e, icon.command)}
+                                                >
+                                                    <FontAwesomeIcon
+                                                        icon={icon.name}
+                                                        className="relative z-10 select-none"
+                                                    />
+                                                </div>
+                                            );
+                                        })}
+                                        <div
+                                            className={`px-[6px] py-[2px] rounded-lg cursor-pointer relative transition-all ${
+                                                link ? 'text-blue-500' : ''
+                                            }`}
+                                            onMouseDown={handleOpenInputLink}
+                                        >
+                                            <FontAwesomeIcon icon={faLink} />
+                                        </div>
+                                    </div>
+                                )}
+                            </motion.div>
+                        )}
+                    </AnimatePresence>
                     <AnimatePresence>
                         {toolboxType.isFocus && (
                             <motion.div
-                                className={`bg-white shadow-custom-2 flex items-center justify-center absolute cursor-pointer ${
-                                    toolboxType.isOpen ? 'rounded-lg' : 'rounded-full'
-                                }`}
+                                className={`absolute cursor-pointer flex flex-col items-end gap-[8px]`}
                                 initial={{ opacity: 0.5 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
@@ -438,14 +450,19 @@ export default function TextEditor({ className = '', label }: { className?: stri
                                         : {}
                                 }
                             >
+                                <div
+                                    onMouseDown={handleToogleTypeBox}
+                                    className="bg-white shadow-custom-2 w-[30px] h-[30px] rounded-full text-[18px] flex items-center justify-center"
+                                >
+                                    <FontAwesomeIcon icon={faEllipsis} />
+                                </div>
                                 <AnimatePresence>
-                                    {toolboxType.isOpen ? (
+                                    {toolboxType.isOpen && (
                                         <motion.div
-                                            className="grid grid-cols-2 gap-[8px] px-[12px] py-[8px] overflow-hidden"
-                                            initial={{ height: '30px', width: '30px' }}
+                                            className="bg-white shadow-custom-2 rounded-lg grid grid-cols-2 overflow-hidden"
+                                            initial={{ height: '0', width: '0' }}
                                             animate={{ height: 'fit-content', width: 'fit-content' }}
-                                            exit={{ height: '30px', width: '30px' }}
-                                            // onMouseLeave={() => setToolboxType((prev) => ({ ...prev, isOpen: false }))}
+                                            exit={{ height: '0', width: '0' }}
                                         >
                                             {[
                                                 {
@@ -478,7 +495,7 @@ export default function TextEditor({ className = '', label }: { className?: stri
                                                 return (
                                                     <div
                                                         key={index}
-                                                        className={`px-[8px] py-[2px] text-[16px] transition-all ${
+                                                        className={` py-[8px] px-[12px] text-[16px] transition-all ${
                                                             isActive ? 'text-blue-500' : ''
                                                         }`}
                                                         onMouseDown={(e) => handleType(e, icon.command)}
@@ -488,13 +505,6 @@ export default function TextEditor({ className = '', label }: { className?: stri
                                                 );
                                             })}
                                         </motion.div>
-                                    ) : (
-                                        <div
-                                            onMouseDown={handleOpenTypeBox}
-                                            className="w-[30px] h-[30px] rounded-full text-[18px] flex items-center justify-center"
-                                        >
-                                            <FontAwesomeIcon icon={faEllipsis} />
-                                        </div>
                                     )}
                                 </AnimatePresence>
                             </motion.div>
@@ -502,7 +512,7 @@ export default function TextEditor({ className = '', label }: { className?: stri
                     </AnimatePresence>
 
                     <Editor
-                        preserveSelectionOnBlur
+                        placeholder="Nhập nội dung..."
                         customStyleMap={styleMap}
                         blockStyleFn={handleBlockStyle}
                         onBlur={handleBlurEditor}
@@ -512,7 +522,6 @@ export default function TextEditor({ className = '', label }: { className?: stri
                         editorState={editor.state}
                         onChange={handleChange}
                         onFocus={handleFocusEditor}
-                        // ref={}
                         editorKey="editor"
                     />
                 </div>
