@@ -21,22 +21,30 @@
     font-weight: 600;
 }
 
-.apply-center div {
+.position-apply-center div {
     text-align: center;
 }
 
-.apply-left div {
+.position-apply-left div {
     text-align: left;
 }
 
-.apply-right div {
+.position-apply-right div {
     text-align: right;
 }
 
-.apply-justify div {
+.position-apply-justify div {
     text-align: justify;
 }
 
-.youtube-input {
-    // background-color: black;
+.size-normal {
+    font-size: 1.6rem;
+}
+
+.size-medium {
+    font-size: 2.4rem;
+}
+
+.size-big {
+    font-size: 3.2rem;
 }
