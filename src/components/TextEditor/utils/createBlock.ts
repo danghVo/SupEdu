@@ -1,24 +1,29 @@
-import { ContentBlock, ContentState, EditorState, SelectionState, genKey } from "draft-js";
+import { ContentBlock, ContentState, EditorState, SelectionState, genKey } from 'draft-js';
 
-export default function createBlock(type: string, text: string, editorState: EditorState,handleChange: (editorState: EditorState) => void, atIndex?: number) {
+export default function createBlock(
+    type: string,
+    text: string,
+    editorState: EditorState,
+    handleChange: (editorState: EditorState) => void,
+    atIndex?: number,
+) {
     const newContentBlock = new ContentBlock({
         key: genKey(),
         type,
-        text
+        text,
     });
     const contentState = editorState.getCurrentContent();
     const oldBlockMap = contentState.getBlockMap();
-    let newBlockMap = [ ...oldBlockMap.toArray(), newContentBlock ]
+    let newBlockMap = [...oldBlockMap.toArray(), newContentBlock];
 
-    if(atIndex) {
+    if (typeof atIndex === 'number') {
         newBlockMap = oldBlockMap
-        .toArray()
-        .reduce(
-            (accu: any, curr, index) =>
-            index === atIndex ? [...accu, curr, newContentBlock] : [...accu, curr],
-            [],
+            .toArray()
+            .reduce(
+                (accu: any, curr, index) => (index === atIndex ? [...accu, curr, newContentBlock] : [...accu, curr]),
+                [],
             );
-    } 
+    }
 
     const newEditorState = EditorState.push(
         editorState,
