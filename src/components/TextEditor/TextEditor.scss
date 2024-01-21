@@ -1,9 +1,15 @@
-.DraftEditor-root .public-DraftEditor-content {
-    min-height: 180px;
-    border: 2px black solid;
-    margin-top: 12px;
-    border-radius: 4px;
-    padding: 12px 16px;
+.DraftEditor-root {
+    .public-DraftEditor-content {
+        min-height: 180px;
+        border: 2px black solid;
+        margin-top: 12px;
+        border-radius: 4px;
+        padding: 12px 16px;
+    }
+
+    .public-DraftEditorPlaceholder-root {
+        padding: 12px 18px;
+    }
 }
 
 .DraftEditor-root *::selection {
