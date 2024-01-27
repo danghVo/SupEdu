@@ -8,7 +8,7 @@ export default function Video(props: any) {
     const [isLoad, setIsLoad] = useState(false);
 
     return (
-        <div onClick={props.blockProps.onClick} className="relative px-[12px] my-[12px] mr-[14px]">
+        <div onClick={props.blockProps.onClick} className="relative px-[12px] my-[12px] mr-[14px]  cursor-text">
             {props.blockProps.src ? (
                 <>
                     {!isLoad && (
@@ -34,7 +34,12 @@ export default function Video(props: any) {
                     <div className="bg-slate-200 px-[12px] py-[8px] rounded-l-lg">
                         <EditorBlock {...props} />
                         {props.blockProps.isError && (
-                            <div className="text-red-500 mt-[12px] pt-[2px]">Đường dẫn không đúng định dạng</div>
+                            <div
+                                contentEditable={false}
+                                className="text-red-500 mt-[12px] pt-[2px] pointer-events-none"
+                            >
+                                Đường dẫn không đúng định dạng
+                            </div>
                         )}
                     </div>
                 </>
