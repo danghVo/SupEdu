@@ -20,3 +20,5 @@ export const classDetailSections = [{ name: 'Lớp học' }, { name: 'Bài tập
 export const postType = ['Thông báo', 'Bài tập', 'Vote'];
 
 export const buttonActionName = ['Đăng', 'Đặt hẹn', 'Lưu'];
+
+export const fontSizeEditor = ['normal', 'medium', 'big'];
