@@ -1,7 +1,8 @@
 'use client';
 
-import { SyntheticEvent, useEffect, useRef, useState } from 'react';
+import { SyntheticEvent, useCallback, useEffect, useRef, useState } from 'react';
 import {
+    Editor,
     ContentBlock,
     ContentState,
     EditorState,
@@ -19,8 +20,6 @@ import {
     faAlignLeft,
     faAlignRight,
     faBold,
-    faCaretLeft,
-    faCaretRight,
     faEllipsis,
     faItalic,
     faLink,
@@ -30,7 +29,6 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { faYoutube } from '@fortawesome/free-brands-svg-icons';
 import { AnimatePresence, motion } from 'framer-motion';
-import dynamic from 'next/dynamic';
 
 import Video from './components/Video';
 import Link from './components/Link';
@@ -38,6 +36,8 @@ import getVideoId from '~/utils/getVideoId';
 import getCurrentBlockIndex from './utils/getCurrentBlockIndex';
 import createBlock from './utils/createBlock';
 import './TextEditor.scss';
+import Slider from '../Slider';
+import { fontSizeEditor } from '~/constant';
 
 // type
 interface MyEditorState {
@@ -47,7 +47,6 @@ interface MyEditorState {
 }
 
 interface ToolboxOffsetStype {
-    id: number;
     top: number;
     left: number;
 }
@@ -64,10 +63,6 @@ interface InputLink {
     value: string;
     selectionState: SelectionState | null;
 }
-
-const Editor = dynamic(() => import('draft-js').then((mod) => mod.Editor), {
-    ssr: false,
-});
 
 const styleMap = {
     SELECTIONLINK: {
@@ -132,42 +127,55 @@ export default function TextEditor({ className = '', label }: { className?: stri
     const wrapperRef = useRef<HTMLDivElement | null>(null);
     const toolboxRef = useRef<HTMLDivElement | null>(null);
     const inputRef = useRef<HTMLInputElement | null>(null);
+    const editorRef = useRef<any>(null);
+
+    useEffect(() => {
+        let offsetTop = toolboxType.offsetTop;
+        const currentBlockKey = editor.state
+            .getCurrentContent()
+            .getBlockForKey(editor.state.getSelection().getStartKey())
+            .getKey();
+
+        if (wrapperRef.current) {
+            const wrapperRect = wrapperRef.current.getBoundingClientRect();
+
+            if (currentBlockKey) {
+                const currentBlockElement = document.querySelector(`div[data-offset-key^="${currentBlockKey}"]`);
+                if (currentBlockElement) {
+                    const currentBlockElementRect = currentBlockElement!.getBoundingClientRect();
+
+                    offsetTop = currentBlockElementRect.top + 4 - wrapperRect.top;
+                }
+            } else if (!editor.state.getCurrentContent().getPlainText()) {
+                offsetTop = 16;
+            }
+
+            setToolboxType((prev) => ({ ...prev, offsetTop }));
+        }
+    }, [editor.state, toolboxType.isFocus]);
 
     useEffect(() => {
         const selection = editor.state.getSelection();
-        const startOffset = selection.getStartOffset();
-        const endOffset = selection.getEndOffset();
-        const selectionRect = getVisibleSelectionRect(window);
-        let offsetTop = toolboxType.offsetTop;
+        if (selection.getHasFocus() && !selection.isCollapsed()) {
+            const selectionRect = getVisibleSelectionRect(window);
+            if (wrapperRef.current && selectionRect) {
+                const wrapperRect = wrapperRef.current?.getBoundingClientRect();
 
-        if (wrapperRef.current && selectionRect) {
-            const wrapperRect = wrapperRef.current.getBoundingClientRect();
+                const transform = (selectionRect.width * 50) / 100;
 
-            if (
-                selectionRect.top > wrapperRect.top &&
-                selectionRect.top < wrapperRect.bottom &&
-                selectionRect.left > wrapperRect.left &&
-                selectionRect.right < wrapperRect.right
-            ) {
-                if (startOffset !== endOffset) {
-                    setToolboxOffsetStyle({
-                        id: Math.random(),
-                        top: selectionRect.top - wrapperRect.top - 16,
-                        left: selectionRect.left - wrapperRect.left + (selectionRect.width * 50) / 100,
-                    });
-                } else {
-                    setToolboxOffsetStyle(null);
-                    setInputLink((prev) => ({ ...prev, value: '', isOpen: false }));
-                }
-
-                offsetTop = selectionRect.top - wrapperRect.top;
+                setToolboxOffsetStyle({
+                    top: selectionRect.top - wrapperRect.top - 16,
+                    left:
+                        selectionRect.left -
+                        wrapperRect.left +
+                        (selectionRect.width >= wrapperRect.width ? 16 : transform),
+                });
             }
-        } else if (!editor.state.getCurrentContent().getPlainText()) {
-            offsetTop = 16;
+        } else {
+            setToolboxOffsetStyle(null);
+            setInputLink((prev) => ({ ...prev, value: '', isOpen: false }));
         }
-
-        setToolboxType((prev) => ({ ...prev, offsetTop }));
-    }, [editor.state, toolboxType.isFocus]);
+    }, [editor.state]);
 
     useEffect(() => {
         if (isCreateNewBlock) {
@@ -212,18 +220,19 @@ export default function TextEditor({ className = '', label }: { className?: stri
         setToolboxType((prev) => ({ ...prev, isFocus: true }));
     };
 
-    const handleBlurEditor = () => {
+    const handleBlurEditor = useCallback(() => {
         if (!inputLink.isFocus) {
             setToolboxOffsetStyle(null);
-            // setToolboxType((prev) => ({ ...prev, isFocus: false, isOpen: false }));
+            setToolboxType((prev) => ({ ...prev, isFocus: false, isOpen: false }));
         }
-    };
+    }, [inputLink]);
 
     const handleTextStyle = (e: SyntheticEvent, command: string) => {
         e.preventDefault();
+        e.stopPropagation();
         let newEditorState = RichUtils.toggleInlineStyle(editor.state, command);
 
-        handleChange(newEditorState);
+        handleChange(EditorState.forceSelection(newEditorState, editor.state.getSelection()));
     };
 
     const handleBlockStyle = (contentBlock: ContentBlock) => {
@@ -240,7 +249,7 @@ export default function TextEditor({ className = '', label }: { className?: stri
             }
         });
 
-        const fontSize = ['normal', 'medium', 'big'].forEach((item) => {
+        const fontSize = ['medium', 'big'].forEach((item) => {
             if (boxTypes.includes('size-' + item)) cssTypes += `size-${item} `;
         });
 
@@ -249,91 +258,167 @@ export default function TextEditor({ className = '', label }: { className?: stri
 
     const handleToogleTypeBox = (e: SyntheticEvent) => {
         e.preventDefault();
+        e.stopPropagation();
 
         setToolboxType((prev) => ({ ...prev, isOpen: !prev.isOpen }));
     };
 
-    const handleType = (e: SyntheticEvent, command: string, type: string) => {
-        e.preventDefault();
-        if (command === 'add-youtube-link') {
-            return createBlock('add-youtube-link', '', editor.state, handleChange, getCurrentBlockIndex(editor.state));
-        }
+    const handleType = useCallback(
+        (e: SyntheticEvent, command: string, type: string) => {
+            e.preventDefault();
+            if (command === 'add-youtube-link') {
+                return createBlock(
+                    'add-youtube-link',
+                    '',
+                    editor.state,
+                    handleChange,
+                    getCurrentBlockIndex(editor.state),
+                );
+            }
 
-        const currentBlock = editor.state
-            .getCurrentContent()
-            .getBlockForKey(editor.state.getSelection().getAnchorKey());
-        let currentType = currentBlock.getType();
-        let newType = currentType;
+            const currentBlock = editor.state
+                .getCurrentContent()
+                .getBlockForKey(editor.state.getSelection().getAnchorKey());
+            let currentType = currentBlock.getType();
+            let newType = currentType;
+            let setCommand = command;
 
-        if (currentType.includes(type)) {
-            newType = currentType
-                .split(' ')
-                .filter((item: string) => !item.includes(type))
-                .join(' ');
-        }
-        if (!currentType.includes(`${type}-${command}`)) {
-            newType += ` ${type}-${command}`;
-        }
+            if (type) {
+                setCommand = `${type}-${command}`;
+            }
 
-        let newEditorState = RichUtils.toggleBlockType(editor.state, newType);
+            if (currentType !== 'unstyled' && command !== 'ordered-list-item') {
+                if (type && currentType.includes(type)) {
+                    newType = currentType
+                        .split(' ')
+                        .filter((item: string) => !item.includes(type))
+                        .join(' ');
+                }
+                if (!currentType.includes(`${setCommand}`)) {
+                    newType += ` ${setCommand}`;
+                }
+            } else newType = setCommand;
 
-        handleChange(newEditorState);
-    };
+            let newEditorState = RichUtils.toggleBlockType(editor.state, newType);
+
+            handleChange(newEditorState);
+        },
+        [editor.state],
+    );
 
     const handleKeyBinding = (e: any) => {
         const currentContent = editor.state.getCurrentContent();
         const currentSelection = editor.state.getSelection().getAnchorKey();
         const currentBlock = currentContent.getBlockForKey(currentSelection);
+        const selection = editor.state.getSelection();
+
         if (e.key === 'Enter' && currentBlock.getType() === 'add-youtube-link') {
             return 'loadYoutubeVideo';
-        } else return getDefaultKeyBinding(e);
-    };
+        }
 
-    const handleKeyCommand = (command: string, editorState: EditorState) => {
-        if (command === 'loadYoutubeVideo') {
-            const currentContent = editor.state.getCurrentContent();
-            const currentSelection = editor.state.getSelection().getAnchorKey();
-            const currentBlock = currentContent.getBlockForKey(currentSelection);
-            if (getVideoId(currentBlock.getText())) {
-                handleChange(RichUtils.toggleBlockType(editorState, 'loadYoutubeVideo'));
-                setIsCreateNewBlock(true);
-                return 'handled';
-            } else return 'not-handled';
-        } else return 'not-handled';
-    };
+        if (currentBlock.getType() === 'ordered-list-item' && wrapperRef.current) {
+            const isFirstBlock = wrapperRef.current.querySelector(`ol[data-offset-key^="${currentBlock.getKey()}"]`);
+            const depth = currentBlock.getDepth();
+            if (e.keyCode == 8 && selection.getAnchorOffset() === 0 && wrapperRef.current) {
+                if (depth === 0 && isFirstBlock) {
+                    handleChange(RichUtils.toggleBlockType(editor.state, 'ordered-list-item'));
 
-    const handleRemoveBlock = (removeKey: string) => {
-        const oldBlockMap = editor.state.getCurrentContent().getBlockMap();
-        let prevIndex = 0;
-        const newBlockMap = oldBlockMap.toArray().filter((value, index, blockMap) => {
-            if (value.getKey() === removeKey) {
-                prevIndex = index - 1;
-                return false;
-            } else {
-                return true;
+                    return 'removeList';
+                } else if (depth > 0) {
+                    const newCurrentBlock = currentBlock.set('depth', depth - 1) as ContentBlock;
+
+                    const newBlockMap = editor.state
+                        .getCurrentContent()
+                        .getBlockMap()
+                        .set(currentBlock.getKey(), newCurrentBlock);
+
+                    const newContentState = editor.state
+                        .getCurrentContent()
+                        .merge({ blockMap: newBlockMap }) as ContentState;
+
+                    handleChange(EditorState.push(editor.state, newContentState, 'adjust-depth'));
+                    return 'adjustDepth';
+                }
             }
-        });
 
-        const newEditorState = EditorState.push(
-            editor.state,
-            ContentState.createFromBlockArray(newBlockMap),
-            'remove-range',
-        );
+            if (e.key === 'Tab' && currentBlock.getType() === 'ordered-list-item') {
+                if (!isFirstBlock) {
+                    handleChange(RichUtils.onTab(e, editor.state, 1));
+                    return 'subList';
+                } else return 'noAction';
+            }
+        }
 
-        if (prevIndex >= 0) {
-            const blockPreRemovedBlock = oldBlockMap.toArray()[prevIndex];
-            const newSelectionState = SelectionState.createEmpty(blockPreRemovedBlock!.getKey()).merge({
-                anchorOffset: blockPreRemovedBlock!.getLength(),
-                focusOffset: blockPreRemovedBlock!.getLength(),
-            });
-            handleChange(EditorState.forceSelection(newEditorState, newSelectionState));
-        } else handleChange(newEditorState);
+        return getDefaultKeyBinding(e);
     };
+
+    const handleKeyCommand = useCallback(
+        (command: string, editorState: EditorState) => {
+            if (command === 'loadYoutubeVideo') {
+                const currentContent = editor.state.getCurrentContent();
+                const currentSelection = editor.state.getSelection().getAnchorKey();
+                const currentBlock = currentContent.getBlockForKey(currentSelection);
+                if (getVideoId(currentBlock.getText())) {
+                    handleChange(RichUtils.toggleBlockType(editorState, 'loadYoutubeVideo'));
+                    setIsCreateNewBlock(true);
+                    return 'handled';
+                } else return 'not-handled';
+            }
+            if (command === 'removeList') {
+                return 'handled';
+            }
+            if (command === 'subList') {
+                return 'handled';
+            }
+            if (command === 'adjustDepth') {
+                return 'handled';
+            }
+            if (command === 'noAction') {
+                handleChange(EditorState.forceSelection(editor.state, editor.state.getSelection()));
+                return 'handled';
+            }
+            return 'not-handled';
+        },
+        [editor.state],
+    );
+
+    const handleRemoveBlock = useCallback(
+        (removeKey: string) => {
+            const oldBlockMap = editor.state.getCurrentContent().getBlockMap();
+            let prevIndex = 0;
+            const newBlockMap = oldBlockMap.toArray().filter((value, index, blockMap) => {
+                if (value.getKey() === removeKey) {
+                    prevIndex = index - 1;
+                    return false;
+                } else {
+                    return true;
+                }
+            });
+
+            const newEditorState = EditorState.push(
+                editor.state,
+                ContentState.createFromBlockArray(newBlockMap),
+                'remove-range',
+            );
+
+            if (prevIndex >= 0) {
+                const blockPreRemovedBlock = oldBlockMap.toArray()[prevIndex];
+                const newSelectionState = SelectionState.createEmpty(blockPreRemovedBlock!.getKey()).merge({
+                    anchorOffset: blockPreRemovedBlock!.getLength(),
+                    focusOffset: blockPreRemovedBlock!.getLength(),
+                });
+                handleChange(EditorState.forceSelection(newEditorState, newSelectionState));
+            } else handleChange(newEditorState);
+        },
+        [editor.state],
+    );
 
     const customRenderBlock = (contentBlock: ContentBlock) => {
         const type = contentBlock.getType();
         if (type === 'add-youtube-link' || type === 'loadYoutubeVideo') {
             const videoId = getVideoId(contentBlock.getText());
+            const clickToNewLine = () =>
+                createBlock('', '', editor.state, handleChange, getCurrentBlockIndex(editor.state));
             return {
                 component: Video,
                 editable: type === 'add-youtube-link',
@@ -342,7 +427,7 @@ export default function TextEditor({ className = '', label }: { className?: stri
                     isError: contentBlock.getText() && !videoId,
                     blockId: contentBlock.toObject().key,
                     handleRemoveBlock: handleRemoveBlock,
-                    onClick: () => createBlock('', '', editor.state, handleChange, getCurrentBlockIndex(editor.state)),
+                    onClick: type === 'loadYoutubeVideo' ? clickToNewLine : () => {},
                 },
             };
         }
@@ -350,6 +435,7 @@ export default function TextEditor({ className = '', label }: { className?: stri
 
     const handleOpenInputLink = (e: any) => {
         e.preventDefault();
+        e.stopPropagation();
         setInputLink({ isOpen: true, value: link, isFocus: true, selectionState: editor.state.getSelection() });
     };
 
@@ -373,9 +459,21 @@ export default function TextEditor({ className = '', label }: { className?: stri
         handleChange(EditorState.forceSelection(newEditorState, selectionState));
     };
 
-    const handleClearLink = (e: SyntheticEvent) => {
-        e.preventDefault();
-        setInputLink((prev) => ({ ...prev, value: '' }));
+    const handleClearLink = useCallback(
+        (e: SyntheticEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            if (inputLink.value) {
+                setInputLink((prev) => ({ ...prev, value: '' }));
+                handleChange(RichUtils.toggleLink(editor.state, editor.state.getSelection(), null));
+            } else setInputLink((prev) => ({ ...prev, isOpen: false }));
+        },
+        [inputLink],
+    );
+
+    const handleMouseDown = (e: any) => {
+        const targetElement = e.target as HTMLDivElement;
+        window.getSelection()?.collapse(targetElement);
     };
 
     return (
@@ -383,12 +481,11 @@ export default function TextEditor({ className = '', label }: { className?: stri
             <div>
                 <div className="text-[18px] font-semibold mb-[12px] font-bold">{label}:</div>
 
-                <div ref={wrapperRef} className="relative" onKeyDown={handleUndo}>
+                <div ref={wrapperRef} className="relative" onKeyDown={handleUndo} onMouseDown={handleMouseDown}>
                     <AnimatePresence>
                         {toolboxOffsetStyle && (
                             <motion.div
                                 ref={toolboxRef}
-                                key={toolboxOffsetStyle.id}
                                 initial={{ opacity: 0.5 }}
                                 animate={{ opacity: 1 }}
                                 exit={{ opacity: 0 }}
@@ -398,6 +495,10 @@ export default function TextEditor({ className = '', label }: { className?: stri
                                     top: `${toolboxOffsetStyle.top}px`,
                                     left: `${toolboxOffsetStyle.left}px`,
                                     transform: 'translate(-50%, -100%)',
+                                }}
+                                onMouseDown={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
                                 }}
                             >
                                 {inputLink.isOpen ? (
@@ -459,7 +560,7 @@ export default function TextEditor({ className = '', label }: { className?: stri
                     <AnimatePresence>
                         {toolboxType.isFocus && (
                             <div
-                                className={`absolute cursor-pointer flex flex-col items-end gap-[8px]`}
+                                className={`absolute flex flex-col items-end gap-[8px]`}
                                 style={
                                     toolboxType.offsetTop !== null
                                         ? {
@@ -487,30 +588,44 @@ export default function TextEditor({ className = '', label }: { className?: stri
                                             animate={{ height: 'fit-content', width: 'fit-content' }}
                                             exit={{ height: 0, width: 0 }}
                                         >
+                                            <Slider
+                                                data={fontSizeEditor}
+                                                clickItem={(e, item) => handleType(e, item, 'size')}
+                                                itemUI={(item) => <div>{item}</div>}
+                                                initItemIndex={fontSizeEditor.findIndex((value) =>
+                                                    editor.type.includes(`size-${value}`),
+                                                )}
+                                            />
                                             {[
                                                 {
                                                     icon: faAlignLeft,
                                                     command: 'left',
+                                                    type: 'position',
                                                 },
                                                 {
                                                     icon: faAlignCenter,
                                                     command: 'center',
+                                                    type: 'position',
                                                 },
                                                 {
                                                     icon: faAlignJustify,
                                                     command: 'justify',
+                                                    type: 'position',
                                                 },
                                                 {
                                                     icon: faAlignRight,
                                                     command: 'right',
+                                                    type: 'position',
                                                 },
                                                 {
                                                     icon: faListUl,
                                                     command: 'ordered-list-item',
+                                                    type: '',
                                                 },
                                                 {
                                                     icon: faYoutube,
                                                     command: 'add-youtube-link',
+                                                    type: '',
                                                 },
                                             ].map((icon, index) => {
                                                 const isActive = editor.type.includes(icon.command);
@@ -518,10 +633,10 @@ export default function TextEditor({ className = '', label }: { className?: stri
                                                 return (
                                                     <div
                                                         key={index}
-                                                        className={` py-[8px] px-[12px] text-[16px] transition-all flex justify-center ${
+                                                        className={` py-[8px] px-[12px] text-[16px] transition-all flex justify-center cursor-pointer ${
                                                             isActive ? 'text-blue-500' : ''
                                                         }`}
-                                                        onMouseDown={(e) => handleType(e, icon.command, 'position')}
+                                                        onMouseDown={(e) => handleType(e, icon.command, icon.type)}
                                                     >
                                                         <FontAwesomeIcon icon={icon.icon} />
                                                     </div>
@@ -546,6 +661,7 @@ export default function TextEditor({ className = '', label }: { className?: stri
                         onChange={handleChange}
                         onFocus={handleFocusEditor}
                         editorKey="editor"
+                        ref={editorRef}
                     />
                 </div>
             </div>
