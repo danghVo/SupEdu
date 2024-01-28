@@ -52,7 +52,7 @@ export default function Vote({ edit }: { edit: boolean }) {
     };
 
     return (
-        <div className="max-w-[400px] my-[24px] mx-[12px] ">
+        <div className="my-[24px] mx-[32px]">
             <div className="font-semibold text-[18px] mb-[16px]">Bình chọn:</div>
             {error && (
                 <div className="text-red-600 my-[12px] mx-[12px] flex justify-between items-center  ">
