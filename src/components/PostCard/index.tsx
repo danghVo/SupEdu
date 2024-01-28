@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowUpFromBracket, faCaretDown, faPaperclip } from '@fortawesome/free-solid-svg-icons';
-import { faYoutube } from '@fortawesome/free-brands-svg-icons';
 
 import { buttonActionName, postType } from '~/constant';
 import Button from '../Button';
 import TextEditor from '../TextEditor';
 import Selection from '../Selection';
+import Vote from './Vote';
 
-export default function PostCard({}) {
+export default function PostCard({ edit = true }: { edit: boolean }) {
     const [type, setType] = useState(postType[0]);
     const [buttonAction, setButtonAction] = useState({ label: buttonActionName[0], openOption: false });
 
@@ -21,23 +21,16 @@ export default function PostCard({}) {
                 onChange={(type) => setType(type)}
                 className="bg-[var(--text-color)] text-white rounded-full mb-[16px]"
             />
+
             <TextEditor label="Nội dung" />
 
-            <div></div>
+            {type === 'Vote' && <Vote edit />}
 
             <div className="flex justify-between items-center mt-[24px]">
                 <div className="mt-[12px] text-[20px]">
                     <FontAwesomeIcon
                         className="cursor-pointer hover:bg-slate-200 py-[12px] px-[12px] rounded-full"
                         icon={faArrowUpFromBracket}
-                    />
-                    <FontAwesomeIcon
-                        className="cursor-pointer hover:bg-slate-200 py-[12px] px-[12px] rounded-full"
-                        icon={faYoutube}
-                    />
-                    <FontAwesomeIcon
-                        className="cursor-pointer hover:bg-slate-200 py-[12px] px-[12px] rounded-full"
-                        icon={faPaperclip}
                     />
                 </div>
                 <div className="flex relative ">

@@ -20,7 +20,7 @@ export default function Selection({
     const [openOption, setOpenOption] = useState(false);
 
     const handleChooseSelection = (event: React.MouseEvent, selection: string) => {
-        // onChange()
+        onChange(selection);
         event.stopPropagation();
         setSelection(selection);
         setOpenOption(false);
