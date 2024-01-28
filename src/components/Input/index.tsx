@@ -1,5 +1,5 @@
 import classNames from 'classnames/bind';
-import { KeyboardEventHandler, useEffect, useRef, useState } from 'react';
+import { KeyboardEventHandler, Ref, forwardRef, useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCircleCheck, faCircleExclamation, faXmark } from '@fortawesome/free-solid-svg-icons';
 
@@ -17,12 +17,13 @@ export interface InputProps {
     inputType?: string;
     rules?: Array<rule>;
     reset?: boolean;
-    onChange: (e: React.ChangeEvent) => void;
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     placeholder?: string;
     iconNode?: React.ReactNode;
     className?: string;
     onFocus?: (e: React.FormEvent<EventTarget>) => void;
     onBlur?: (e: React.FormEvent<EventTarget>) => void;
+    accept?: string;
 }
 
 const cs = classNames.bind(styles);
@@ -38,20 +39,24 @@ const iconStatusName = {
     },
 };
 
-function Input({
-    value = '',
-    label = '',
-    inputType = 'text',
-    textArea = false,
-    rules = [],
-    reset = true,
-    onChange,
-    placeholder = '',
-    className = '',
-    iconNode = null,
-    onFocus = (e) => {},
-    onBlur = (e) => {},
-}: InputProps) {
+function Input(
+    {
+        value = '',
+        label = '',
+        inputType = 'text',
+        textArea = false,
+        rules = [],
+        reset = true,
+        onChange,
+        placeholder = '',
+        className = '',
+        iconNode = null,
+        onFocus = (e) => {},
+        onBlur = (e) => {},
+        accept,
+    }: InputProps,
+    forwardRef: Ref<HTMLInputElement> | undefined,
+) {
     const [errMess, setErrMess] = useState('');
     const { message } = useValid(value, rules);
     const [statusIcon, setStatusIcon] = useState({ name: null, color: '' });
@@ -75,10 +80,6 @@ function Input({
         }
     };
 
-    const handleOnChange = (e: React.ChangeEvent) => {
-        onChange(e);
-    };
-
     const InputTag = textArea ? 'textarea' : 'input';
 
     return (
@@ -95,14 +96,16 @@ function Input({
                 )}
                 <div className="grow">
                     <input
+                        ref={forwardRef || undefined}
                         id={label}
                         type={inputType}
+                        accept={accept}
                         className={`w-full ${statusIcon.name ? 'pl-4' : 'pl-12'} pr-2 py-6 outline-none ${className}`}
                         onKeyUp={handleKeyUp}
                         value={value}
                         autoComplete="off"
                         data-error={message}
-                        onChange={handleOnChange}
+                        onChange={onChange}
                         placeholder={placeholder}
                         onFocus={onFocus}
                         onBlur={onBlur}
@@ -115,4 +118,4 @@ function Input({
     );
 }
 
-export default Input;
+export default forwardRef(Input);
