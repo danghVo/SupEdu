@@ -36,12 +36,6 @@ function InputFile(
 
     const inputRef = useRef<HTMLInputElement | null>(null);
 
-    // useImperativeHandle(forwardRef, () => ({
-    //     getFiles: () => {
-    //         return files;
-    //     },
-    // }));
-
     const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
         const fileList = e.target.files;
         const newFile = fileList?.item(fileList.length - 1);
@@ -77,14 +71,7 @@ function InputFile(
 
             {isRequire && !file && <div className={cs('required')}>Không được để trống</div>}
             <div className="hidden">
-                <Input
-                    value={addFile}
-                    inputType="file"
-                    accept="image/png, image/jpeg"
-                    rules={[]}
-                    onChange={handleFile}
-                    ref={inputRef}
-                />
+                <Input value={addFile} inputType="file" accept="*" rules={[]} onChange={handleFile} ref={inputRef} />
             </div>
         </div>
     );
