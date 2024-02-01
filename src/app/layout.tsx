@@ -21,6 +21,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <html lang="en">
             <body className={inter.className} suppressHydrationWarning>
                 {children}
+                <div id="modal-root"></div>
             </body>
         </html>
     );
