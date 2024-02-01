@@ -1,0 +1,16 @@
+#number-scroll-bar .simplebar-track.simplebar-vertical {
+    width: 100%;
+
+    .simplebar-scrollbar {
+        transition: none;
+
+        &::before {
+            transition: none;
+        }
+
+        &.simplebar-visible::before,
+        &.simplebar-hover::before {
+            background-color: transparent;
+        }
+    }
+}
