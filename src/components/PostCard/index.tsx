@@ -26,10 +26,13 @@ export default function PostCard({ edit = true }: { edit: boolean }) {
 
     const handleAddFile = (file: File) => {
         const extension = file.type.split('/')[1];
+        const type = fileTypes.find((type) => type.type === extension);
+
         const newFile = {
             name: file.name,
             path: file.webkitRelativePath,
-            type: fileTypes.includes(extension) ? extension : 'unknown',
+            type: type ? type.type : 'unknown',
+            color: type ? type.color : 'black',
         };
 
         setFiles((prev) => {
@@ -63,7 +66,8 @@ export default function PostCard({ edit = true }: { edit: boolean }) {
                             {files.map((file, index) => (
                                 <div
                                     key={index}
-                                    className="border w-[200px] h-[50px] px-[12px] flex items-center rounded-lg my-[12px]"
+                                    style={{ borderColor: file.color }}
+                                    className={`border-2 w-[200px] h-[50px] px-[12px] flex items-center rounded-lg my-[12px]`}
                                 >
                                     <Image
                                         src={require(`~/assets/filetype/${file.type}.png`)}
@@ -74,7 +78,7 @@ export default function PostCard({ edit = true }: { edit: boolean }) {
                                         href={file.path}
                                         download
                                         title={file.name}
-                                        className="flex items-center truncate h-full border-l-2 px-[8px] grow"
+                                        className="flex items-center truncate h-full border-l-2 border-inherit px-[8px] grow"
                                     >
                                         <span className="truncate text-[13px]">{file.name}</span>
                                     </a>
@@ -102,7 +106,7 @@ export default function PostCard({ edit = true }: { edit: boolean }) {
                     <div className="flex relative ">
                         <Button
                             handleClick={() => {
-                                setOpenTimeSetterModal(true);
+                                if (buttonAction.label === 'Đặt hẹn') setOpenTimeSetterModal(true);
                             }}
                             className="rounded-none rounded-tl-lg rounded-bl-lg"
                         >

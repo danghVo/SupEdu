@@ -29,6 +29,7 @@ export interface FileType {
     name: string;
     path: string;
     type: string;
+    color: string;
 }
 
 export interface TimeData {
@@ -37,17 +38,18 @@ export interface TimeData {
 }
 
 export const fileTypes = [
-    'csv',
-    'docx',
-    'exe',
-    'gif',
-    'html',
-    'iso',
-    'java',
-    'javascript',
-    'jpg',
-    'rar',
-    'png',
-    'rar',
-    'xml',
+    { type: 'csv', color: '#00C650' },
+    { type: 'pdf', color: '#FF3E4C' },
+    { type: 'vnd.openxmlformats-officedocument.wordprocessingml.document', color: '#0072FF' },
+    { type: 'msword', color: '0072FF' },
+    { type: 'png', color: '#005FAD' },
+    { type: 'iso', color: '#0072FF' },
+    { type: 'exe', color: '#0072FF' },
+    { type: 'gif', color: '#FF9908' },
+    { type: 'html', color: '#00C650' },
+    { type: 'java', color: '#FF3E4C' },
+    { type: 'xml', color: '#A140FF' },
+    { type: 'jpg', color: '#00C650' },
+    { type: 'rar', color: '#A140FF' },
+    { type: 'javascript', color: '#ffb246' },
 ];
