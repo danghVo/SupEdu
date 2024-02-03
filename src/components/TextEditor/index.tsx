@@ -29,6 +29,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons';
 import { faYoutube } from '@fortawesome/free-brands-svg-icons';
 import { AnimatePresence, motion } from 'framer-motion';
+import { memo } from 'react';
 
 import Video from './components/Video';
 import Link from './components/Link';
@@ -88,24 +89,36 @@ const decorator = new CompositeDecorator([
     },
 ]);
 
-export default function TextEditor({ className = '', label }: { className?: string; label: string }) {
+function TextEditor({
+    editorState,
+    className = '',
+    label,
+    onChange,
+}: {
+    editorState: EditorState | null;
+    className?: string;
+    label: string;
+    onChange: (editorState: EditorState) => void;
+}) {
     const [editor, setEditor] = useState<MyEditorState>({
-        state: EditorState.createWithContent(
-            convertFromRaw({
-                entityMap: {},
-                blocks: [
-                    {
-                        text: '',
-                        key: 'editor',
-                        type: 'unstyled',
-                        entityRanges: [],
-                        depth: 0,
-                        inlineStyleRanges: [],
-                    },
-                ],
-            }),
-            decorator,
-        ),
+        state:
+            editorState ||
+            EditorState.createWithContent(
+                convertFromRaw({
+                    entityMap: {},
+                    blocks: [
+                        {
+                            text: '',
+                            key: 'editor',
+                            type: 'unstyled',
+                            entityRanges: [],
+                            depth: 0,
+                            inlineStyleRanges: [],
+                        },
+                    ],
+                }),
+                decorator,
+            ),
         style: [],
         type: '',
     });
@@ -224,6 +237,7 @@ export default function TextEditor({ className = '', label }: { className?: stri
         if (!inputLink.isFocus) {
             setToolboxOffsetStyle(null);
             setToolboxType((prev) => ({ ...prev, isFocus: false, isOpen: false }));
+            onChange(editor.state);
         }
     }, [inputLink]);
 
@@ -668,3 +682,5 @@ export default function TextEditor({ className = '', label }: { className?: stri
         </div>
     );
 }
+
+export default memo(TextEditor);
