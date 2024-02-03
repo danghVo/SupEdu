@@ -31,7 +31,7 @@ export default function Main() {
             style={{ maxHeight: '100vh' }}
             classNames={{ track: 'simplebar-track mr-2' }}
             forceVisible="y"
-            className="grow relative"
+            className="grow relative z-[800]"
         >
             <div className="min-h-screen flex-col flex p-[32px] pt-[32px]" ref={wrapperRef}>
                 <div className="font-bold flex items-center text-[32px] mb-[28px]">Lớp A</div>
