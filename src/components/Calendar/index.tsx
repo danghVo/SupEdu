@@ -10,18 +10,34 @@ import getDaysOfMonth from '~/utils/getDaysOfMonth';
 const today = new Date();
 
 export default function Calendar({
+    value,
     markedDays,
     handleClickDay,
 }: {
+    value?: string;
     markedDays?: Array<string>;
     handleClickDay?: (date: string | null) => void;
 }) {
     const [currentDate, setCurrentDate] = useState<{ month: number; date: number | null; year: number }>({
-        month: today.getMonth(),
         date: today.getDate(),
+        month: today.getMonth(),
         year: today.getFullYear(),
     });
-    const [dateSelected, setDaySelected] = useState<string | null>(`${today.getDate()}/${today.getMonth() + 1}`);
+    const [dateSelected, setDaySelected] = useState<string | null>(
+        value ? value.slice(0, value.length - 5) : `${today.getDate()}/${today.getMonth() + 1}`,
+    );
+
+    useEffect(() => {
+        if (value) {
+            const dateArray = value.split('/');
+
+            setCurrentDate({
+                month: parseInt(dateArray[1]) - 1,
+                date: parseInt(dateArray[0]),
+                year: parseInt(dateArray[2]),
+            });
+        }
+    }, []);
 
     useEffect(() => {
         if (handleClickDay) {
@@ -53,10 +69,16 @@ export default function Calendar({
     };
 
     const hanldeChooseDay = (date: number, month: number) => {
+        if (month !== currentDate.month) {
+            setCurrentDate((prev) => ({
+                ...prev,
+                month,
+            }));
+        }
         setDaySelected(`${date}/${month + 1}`);
     };
 
-    const markDate = (fullDateString: string) => {
+    const markedDate = (fullDateString: string) => {
         if (markedDays) {
             if (markedDays.includes(fullDateString)) {
                 return Date.parse(fullDateString) > Date.now() ? 'bg-slate-400 text-white' : 'bg-slate-800 text-white';
@@ -92,8 +114,12 @@ export default function Calendar({
                                     onClick={() => hanldeChooseDay(dateItem.date, dateItem.month)}
                                     key={dateItem.date}
                                     className={`font-normal text-[14px] flex items-center justify-center w-[25px] h-[25px] px-[8px] py-[0px] cursor-pointer rounded-full relative ${
-                                        currentDate.date === dateItem.date ? 'bg-black text-white rounded-full' : ''
-                                    } ${currentDate.month === dateItem.month ? '' : 'text-slate-200'} ${markDate(
+                                        today.getDate() === dateItem.date &&
+                                        today.getMonth() === dateItem.month &&
+                                        today.getFullYear() === currentDate.year
+                                            ? 'bg-black text-white rounded-full'
+                                            : ''
+                                    } ${currentDate.month === dateItem.month ? '' : 'text-slate-200'} ${markedDate(
                                         `${dateItem.date}/${dateItem.month + 1}/${currentDate.year}`,
                                     )}`}
                                 >
