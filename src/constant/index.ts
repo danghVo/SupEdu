@@ -14,6 +14,7 @@ export const month = [
 ];
 
 export const hour = new Array(24).fill(-1).map((item, index) => index);
+export const minute = new Array(60).fill(-1).map((item, index) => index);
 
 export const day = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
@@ -34,7 +35,7 @@ export interface FileType {
 
 export interface TimeData {
     date: string;
-    time: number;
+    time: string;
 }
 
 export const fileTypes = [

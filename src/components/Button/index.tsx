@@ -36,11 +36,11 @@ export default function Button({
 
     return (
         <button
-            className={`flex items-center font-medium px-12 py-8 rounded-[25px] ${className} ${cs(size, theme)}`}
+            className={`flex items-center justify-center font-medium px-[8px] py-[12px] gap-[8px] rounded-[25px] ${className} ${cs(size, theme)}`}
             {...passprops}
             onClick={handleClickButton}
         >
-            <span className="block w-full text-center">{children}</span>
+            <span className="">{children}</span>
             {icon && <div>{icon}</div>}
         </button>
     );

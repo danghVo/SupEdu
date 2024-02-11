@@ -8,11 +8,14 @@ export default function Video(props: any) {
     const [isLoad, setIsLoad] = useState(false);
 
     return (
-        <div onClick={props.blockProps.onClick} className="relative px-[12px] my-[12px] mr-[14px]  cursor-text">
+        <div
+            onClick={props.blockProps.onClick}
+            className={`relative px-[12px] my-[12px] mr-[14px] ${props.blockProps.editable ? ' cursor-text' : ''}`}
+        >
             {props.blockProps.src ? (
-                <>
+                <div>
                     {!isLoad && (
-                        <div className="w-full h-[350px] flex items-center justify-center bg-slate-200">
+                        <div className="w-full h-[300px] flex items-center justify-center bg-slate-200">
                             <motion.span
                                 className="text-[20px]"
                                 initial={{ rotate: 0 }}
@@ -28,7 +31,12 @@ export default function Video(props: any) {
                         src={'https://www.youtube.com/embed/' + props.blockProps.src}
                         onLoad={() => setIsLoad(true)}
                     ></iframe>
-                </>
+                    <div className="w-full h-fit bg-white px-[12px] py-[8px] rounded-lg shadow-custom-5 text-blue-500 overflow-hidden">
+                        <a target="_blank" href={`https://youtube.com/watch?v={props.blockProps.src}`}>
+                            https://youtube.com/watch?v={props.blockProps.src}
+                        </a>
+                    </div>
+                </div>
             ) : (
                 <>
                     <div className="bg-slate-200 px-[12px] py-[8px] rounded-l-lg">
@@ -44,15 +52,17 @@ export default function Video(props: any) {
                     </div>
                 </>
             )}
-            <div
-                className="absolute h-[40px] flex items-center top-0 right-[-10px] text-[18px] bg-black text-white px-[4px] rounded-r-lg cursor-pointer"
-                onClick={(e) => {
-                    e.stopPropagation();
-                    props.blockProps.handleRemoveBlock(props.blockProps.blockId);
-                }}
-            >
-                <FontAwesomeIcon icon={faXmark} />
-            </div>
+            {props.blockProps.editable && (
+                <div
+                    className="absolute h-[40px] flex items-center top-0 right-[-10px] text-[18px] bg-black text-white px-[4px] rounded-r-lg cursor-pointer"
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        props.blockProps.handleRemoveBlock(props.blockProps.blockId);
+                    }}
+                >
+                    <FontAwesomeIcon icon={faXmark} />
+                </div>
+            )}
         </div>
     );
 }

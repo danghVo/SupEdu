@@ -1,16 +1,54 @@
 import { faCircle } from '@fortawesome/free-regular-svg-icons';
 import { faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { SyntheticEvent, useState } from 'react';
+import { SyntheticEvent, useEffect, useState } from 'react';
 import Button from '~/components/Button';
 
-export default function Vote({ edit }: { edit: boolean }) {
+interface VoteItem {
+    value: string;
+    percentage: number;
+}
+
+export interface VoteData {
+    id?: string;
+    title: string;
+    option: Array<VoteItem>;
+}
+
+export default function Vote({
+    edit,
+    voteData,
+    onChange,
+}: {
+    edit: boolean;
+    voteData: VoteData | null;
+    onChange: (voteDate: VoteData) => void;
+}) {
     const [title, setTitle] = useState('');
-    const [option, setOption] = useState<Array<{ value: string; percentage: number }>>([
+    const [option, setOption] = useState<Array<VoteItem>>([
         { value: '', percentage: 0 },
         { value: '', percentage: 0 },
     ]);
+    const [selection, setSelection] = useState('');
     const [error, setError] = useState('');
+
+    useEffect(() => {
+        if (voteData) {
+            setOption(voteData.option);
+            setTitle(voteData.title);
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!error) {
+            onChange({
+                title,
+                option,
+            });
+        }
+    }, [title, option]);
+
+    useEffect(() => {});
 
     const handleChangeOption = (e: any, index: number) => {
         const value = e.target.value;
@@ -38,11 +76,13 @@ export default function Vote({ edit }: { edit: boolean }) {
         }
     };
 
-    const handleSubmit = () => {
-        if (!error) {
-            if (title && !option.find((item) => !item.value)) {
-                // Submit
-            } else setError('Không được bỏ trống nội dung');
+    const handleChooseOption = (selection: string) => {
+        if (!edit) {
+            setSelection(selection);
+
+            if (voteData?.id) {
+                // POST selection
+            }
         }
     };
 
@@ -52,7 +92,7 @@ export default function Vote({ edit }: { edit: boolean }) {
     };
 
     return (
-        <div className="my-[24px] mx-[32px]">
+        <div className="my-[16px] mx-[32px]">
             <div className="font-semibold text-[18px] mb-[16px]">Bình chọn:</div>
             {error && (
                 <div className="text-red-600 my-[12px] mx-[12px] flex justify-between items-center  ">
@@ -60,47 +100,66 @@ export default function Vote({ edit }: { edit: boolean }) {
                     <FontAwesomeIcon icon={faXmark} onClick={() => setError('')} className="mr-[16px] cursor-pointer" />
                 </div>
             )}
-            <input
-                placeholder="Tiêu đề"
-                className="outline-none w-full px-[16px] py-[8px] rounded-full shadow-custom-4"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-            />
+            {edit ? (
+                <input
+                    placeholder="Tiêu đề"
+                    className="outline-none w-full px-[16px] py-[8px] rounded-full shadow-custom-4"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                />
+            ) : (
+                <div className="text-[18px] font-bold">{title}</div>
+            )}
             <div className="mx-[16px] my-[12px]">
                 {option.map((item, index) => (
                     <div
-                        className="px-[12px] my-[16px] shadow-custom-4 rounded-full overflow-hidden flex items-center"
+                        className={`px-[12px] my-[16px] shadow-custom-4 rounded-full overflow-hidden flex items-center ${selection === item.value && !edit ? 'border-2 border-green-500' : ''}`}
                         key={index}
                     >
-                        <FontAwesomeIcon icon={faCircle} />
+                        <div
+                            className={`cursor-pointer h-[16px] flex items-center ${
+                                selection === item.value && !edit
+                                    ? 'relative before:content-[""] before:block before:absolute before:top-0 before:w-full before:h-full before:bg-green-500 before:rounded-full'
+                                    : ''
+                            }`}
+                        >
+                            <FontAwesomeIcon icon={faCircle} onClick={() => handleChooseOption(item.value)} />
+                        </div>
                         <input
                             className="px-[8px] py-[8px] w-full outline-none"
                             placeholder={`Lựa chọn ${index + 1}`}
                             value={item.value}
+                            readOnly={!edit}
                             onChange={(e) => handleChangeOption(e, index)}
                         />
-                        <FontAwesomeIcon
-                            icon={faXmark}
-                            className="cursor-pointer px-[4px]"
-                            onClick={() => handleRemoveSelection(index)}
-                        />
+                        {edit && (
+                            <FontAwesomeIcon
+                                icon={faXmark}
+                                className="cursor-pointer px-[4px]"
+                                onClick={() => handleRemoveSelection(index)}
+                            />
+                        )}
                     </div>
                 ))}
-                <div
-                    className="px-[12px] py-[8px] my-[16px] shadow-custom-4 rounded-full overflow-hidden flex items-center cursor-pointer"
-                    onClick={hanldeAddNewOption}
-                >
-                    <FontAwesomeIcon icon={faPlus} className="mr-[8px]" />
-                    Thêm lựa chọn
-                </div>
+
+                {edit && (
+                    <div
+                        className="px-[12px] py-[8px] my-[16px] shadow-custom-4 rounded-full overflow-hidden flex items-center cursor-pointer"
+                        onClick={hanldeAddNewOption}
+                    >
+                        <FontAwesomeIcon icon={faPlus} className="mr-[8px]" />
+                        Thêm lựa chọn
+                    </div>
+                )}
             </div>
 
-            <div className="mt-[24px] flex items-center gap-[12px] justify-end">
-                {/* <Button handleClick={handleSubmit}>Xong</Button> */}
-                <Button className="border-slate-400 border-2" handleClick={handleClear}>
-                    Reset
-                </Button>
-            </div>
+            {edit && (
+                <div className="mt-[24px] flex items-center gap-[12px] justify-end">
+                    <Button className="border-slate-400 border-2 w-[80px]" handleClick={handleClear}>
+                        Reset
+                    </Button>
+                </div>
+            )}
         </div>
     );
 }
