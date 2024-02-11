@@ -8,7 +8,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faChalkboard, faGear } from '@fortawesome/free-solid-svg-icons';
 
 import image from '~/assets/image';
-    
+
 const mainItem = [
     { name: 'Lớp học', to: '/MyClass/Class', icon: faChalkboard },
     { name: 'Chat', to: '/MyClass/Chat', icon: faComment },
@@ -25,7 +25,7 @@ export default function SideBar() {
             onMouseEnter={() => setOpen(true)}
             onMouseLeave={() => setOpen(false)}
             whileHover={{ width: '250px' }}
-            className={`fixed h-screen px-[4px] border-r-2 border-slate-300 border-solid z-50 bg-white ${
+            className={`fixed h-screen px-[4px] border-r-2 border-slate-300 border-solid z-[999] bg-white ${
                 open ? 'w-[250px] shadow-custom-1' : 'w-[50px]'
             } overflow-hidden flex flex-col justify-between`}
         >
