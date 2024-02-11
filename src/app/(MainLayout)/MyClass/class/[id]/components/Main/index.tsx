@@ -57,7 +57,7 @@ export default function Main() {
                     ))}
                 </div>
 
-                <div className="grow mt-[28px]">
+                <div className="grow mt-[28px] relative">
                     <Post />
                 </div>
             </div>
