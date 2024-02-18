@@ -3,6 +3,7 @@ import { faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { SyntheticEvent, useEffect, useState } from 'react';
 import Button from '~/components/Button';
+import { motion } from 'framer-motion';
 
 interface VoteItem {
     value: string;
@@ -29,7 +30,7 @@ export default function Vote({
         { value: '', percentage: 0 },
         { value: '', percentage: 0 },
     ]);
-    const [selection, setSelection] = useState('');
+    const [selection, setSelection] = useState<string | null>(null);
     const [error, setError] = useState('');
 
     useEffect(() => {
@@ -68,7 +69,7 @@ export default function Vote({
         setOption((prev) => [...prev, { value: '', percentage: 0 }]);
     };
 
-    const handleRemoveSelection = (removedIndex: number) => {
+    const handleRemoveOption = (removedIndex: number) => {
         if (option.length > 2) {
             setOption((prev) => prev.filter((item, index) => index !== removedIndex));
         } else {
@@ -91,9 +92,13 @@ export default function Vote({
         setOption(Array(2).fill({ value: '', percentage: 0 }));
     };
 
+    const handleRemoveSelection = () => {
+        setSelection(null);
+    };
+
     return (
         <div className="my-[16px] mx-[32px]">
-            <div className="font-semibold text-[18px] mb-[16px]">Bình chọn:</div>
+            {edit && <div className="font-semibold text-[18px] mb-[16px]">Bình chọn:</div>}
             {error && (
                 <div className="text-red-600 my-[12px] mx-[12px] flex justify-between items-center  ">
                     {error}
@@ -108,36 +113,66 @@ export default function Vote({
                     onChange={(e) => setTitle(e.target.value)}
                 />
             ) : (
-                <div className="text-[18px] font-bold">{title}</div>
+                <div className="flex items-center justify-between">
+                    <div className="text-[18px] font-bold">{title}</div>
+
+                    {selection && (
+                        <div
+                            className="underline mr-[16px] font-semibold cursor-pointer"
+                            onClick={handleRemoveSelection}
+                        >
+                            Bỏ lựa chọn
+                        </div>
+                    )}
+                </div>
             )}
             <div className="mx-[16px] my-[12px]">
                 {option.map((item, index) => (
-                    <div
-                        className={`px-[12px] my-[16px] shadow-custom-4 rounded-full overflow-hidden flex items-center ${selection === item.value && !edit ? 'border-2 border-green-500' : ''}`}
-                        key={index}
-                    >
-                        <div
-                            className={`cursor-pointer h-[16px] flex items-center ${
+                    <div key={index}>
+                        <motion.div
+                            className={`px-[12px] my-[16px] shadow-custom-4 rounded-full overflow-hidden flex items-center`}
+                            initial={{ border: '0px solid transparent' }}
+                            animate={
                                 selection === item.value && !edit
-                                    ? 'relative before:content-[""] before:block before:absolute before:top-0 before:w-full before:h-full before:bg-green-500 before:rounded-full'
-                                    : ''
-                            }`}
+                                    ? { border: '2px solid green' }
+                                    : { border: '0px solid transparent' }
+                            }
+                            onClick={() => handleChooseOption(item.value)}
                         >
-                            <FontAwesomeIcon icon={faCircle} onClick={() => handleChooseOption(item.value)} />
-                        </div>
-                        <input
-                            className="px-[8px] py-[8px] w-full outline-none"
-                            placeholder={`Lựa chọn ${index + 1}`}
-                            value={item.value}
-                            readOnly={!edit}
-                            onChange={(e) => handleChangeOption(e, index)}
-                        />
-                        {edit && (
-                            <FontAwesomeIcon
-                                icon={faXmark}
-                                className="cursor-pointer px-[4px]"
-                                onClick={() => handleRemoveSelection(index)}
+                            <div
+                                className={`cursor-pointer h-[16px] flex items-center ${
+                                    selection === item.value && !edit
+                                        ? 'relative before:content-[""] before:block before:absolute before:top-0 before:w-full before:h-full before:bg-green-500 before:rounded-full'
+                                        : ''
+                                }`}
+                            >
+                                <FontAwesomeIcon icon={faCircle} />
+                            </div>
+                            <input
+                                className={`px-[8px] py-[8px] w-full outline-none ${!edit ? 'cursor-pointer' : ''}`}
+                                placeholder={`Lựa chọn ${index + 1}`}
+                                value={item.value}
+                                readOnly={!edit}
+                                onChange={(e) => handleChangeOption(e, index)}
                             />
+                            {edit && (
+                                <FontAwesomeIcon
+                                    icon={faXmark}
+                                    className="cursor-pointer px-[4px]"
+                                    onClick={() => handleRemoveOption(index)}
+                                />
+                            )}
+                        </motion.div>
+
+                        {selection && !edit && (
+                            <div className="flex items-center gap-[16px] px-[8px]">
+                                <motion.div
+                                    className={`h-[20px] ${selection === item.value ? 'bg-green-500' : 'bg-black'} rounded-full`}
+                                    initial={{ width: 0 }}
+                                    animate={{ width: item.percentage + '%' }}
+                                ></motion.div>
+                                <span className="font-semibold">{item.percentage}%</span>
+                            </div>
                         )}
                     </div>
                 ))}
