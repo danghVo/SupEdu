@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { use, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -21,11 +21,13 @@ import TimeSetterBox from './TimeSetterBox';
 import Modal from '../Modal';
 import { EditorState, RawDraftContentState } from 'draft-js';
 import Comment, { CommentData } from './Comment';
+import Input from '../Input';
 
 const currentDay = new Date();
 
-interface PostData {
+export interface PostData {
     author: string;
+    title: string;
     type: string;
     timePost: TimeData;
     rawContentState: RawDraftContentState | null;
@@ -35,40 +37,48 @@ interface PostData {
     comments?: Array<CommentData>;
 }
 
-export default function PostCard({ postData, edit = true }: { postData?: PostData; edit?: boolean }) {
-    const [type, setType] = useState(postType[0]);
-    const [buttonAction, setButtonAction] = useState({ label: buttonActionName[0], openOption: false });
-    const [files, setFiles] = useState<Array<FileType>>([]);
+export default function PostCard({
+    postData,
+    isPreview = false,
+    edit = true,
+}: {
+    postData?: PostData;
+    isPreview?: boolean;
+    edit?: boolean;
+}) {
+    const [type, setType] = useState(postData?.type || postType[0]);
+
     const [openTimeTaskEndBox, setOpenTimeTaskEndBox] = useState(false);
-    const [timeTaskEnd, setTimeTaskEnd] = useState<TimeData>({
-        date: `${currentDay.getDate()}/${currentDay.getMonth() + 1}/${currentDay.getFullYear()}`,
-        time: `${currentDay.getHours()}:${currentDay.getMinutes()}`,
-    });
-    const [voteData, setVoteData] = useState<VoteData | null>(null);
+    const [timeTaskEnd, setTimeTaskEnd] = useState<TimeData>(
+        postData?.timeTaskEnd || {
+            date: `${currentDay.getDate()}/${currentDay.getMonth() + 1}/${currentDay.getFullYear()}`,
+            time: `${currentDay.getHours()}:${currentDay.getMinutes()}`,
+        },
+    );
+
+    const [title, setTitle] = useState(postData?.title || '');
+
+    const [rawContentState, setRawContentState] = useState<RawDraftContentState | null>(
+        postData?.rawContentState || null,
+    );
+
+    const [voteData, setVoteData] = useState<VoteData | null>(postData?.voteData || null);
+
+    const [files, setFiles] = useState<Array<FileType>>(postData?.files || []);
+
     const [openTimeSetterModal, setOpenTimeSetterModal] = useState(false);
-    const [timePost, setTimePost] = useState<TimeData>({
-        date: `${currentDay.getDate()}/${currentDay.getMonth() + 1}/${currentDay.getFullYear()}`,
-        time: `${currentDay.getHours()}:${currentDay.getMinutes()}`,
-    });
-    const [rawContentState, setRawContentState] = useState<RawDraftContentState | null>(null);
+    const [timePost, setTimePost] = useState<TimeData>(
+        postData?.timePost || {
+            date: `${currentDay.getDate()}/${currentDay.getMonth() + 1}/${currentDay.getFullYear()}`,
+            time: `${currentDay.getHours()}:${currentDay.getMinutes()}`,
+        },
+    );
+
+    const [buttonAction, setButtonAction] = useState({ label: buttonActionName[0], openOption: false });
+
     const [isViewComment, setIsViewComment] = useState(false);
 
     const fileRef = useRef(null);
-
-    useEffect(() => {
-        if (postData) {
-            setType(postData.type);
-            if (postData.rawContentState) {
-                setRawContentState(postData.rawContentState);
-            }
-            if (postData.files) {
-                setFiles(postData.files);
-            }
-            if (type === 'Bài tập' && postData.timeTaskEnd) {
-                setTimeTaskEnd(postData.timeTaskEnd);
-            }
-        }
-    }, []);
 
     const handleAddFile = (file: File) => {
         const extension = file.type.split('/')[1];
@@ -95,6 +105,7 @@ export default function PostCard({ postData, edit = true }: { postData?: PostDat
     const handleSubmit = () => {
         console.log({
             type,
+            title: title || 'Không có tiêu đề',
             timeTaskEnd,
             timePost,
             files,
@@ -111,9 +122,9 @@ export default function PostCard({ postData, edit = true }: { postData?: PostDat
 
     return (
         <>
-            <div className="w-[70%]">
+            <div className={`w-[70%] ${isPreview ? 'cursor-pointer mb-[-32px]' : ''}`}>
                 <div className="bg-white shadow-custom-2 rounded-[16px] py-[12px] px-[16px]">
-                    <div className="flex items-center justify-between mb-[16px]">
+                    <div className={`flex items-center justify-between ${isPreview ? '' : 'mb-[16px]'}`}>
                         {edit ? (
                             <Selection
                                 optionData={postType}
@@ -122,12 +133,15 @@ export default function PostCard({ postData, edit = true }: { postData?: PostDat
                                 className="bg-[var(--text-color)] text-white rounded-full"
                             />
                         ) : (
-                            <div className="bg-[var(--text-color)] text-white rounded-full text-[18px] px-[12px] py-[8px]">
-                                {type}
+                            <div className="flex items-center">
+                                <div className="bg-[var(--text-color)] text-white rounded-full text-[18px] px-[12px] py-[8px]">
+                                    {type}
+                                </div>
+                                {isPreview && <div className="text-[24px] font-bold pl-[8px]">{title}</div>}
                             </div>
                         )}
 
-                        {(type === 'Bài tập' || type === 'Vote') && (
+                        {(type === 'Bài tập' || type === 'Bình chọn') && (
                             <div className="relative">
                                 <motion.div
                                     initial={{ marginBottom: 0 }}
@@ -162,8 +176,24 @@ export default function PostCard({ postData, edit = true }: { postData?: PostDat
                         )}
                     </div>
 
-                    {(type !== 'Vote' || edit || (!edit && rawContentState)) && (
+                    {edit ? (
+                        <div className="mb-[16px]">
+                            <Input
+                                placeholder="Tiêu đề"
+                                value={title}
+                                className=""
+                                onChange={(value) => {
+                                    setTitle(value);
+                                }}
+                            />
+                        </div>
+                    ) : (
+                        !isPreview && <div className="text-[24px] font-bold pl-[8px]">{title}</div>
+                    )}
+
+                    {(type !== 'Bình chọn' || edit || (!edit && rawContentState)) && !isPreview && (
                         <TextEditor
+                            className="mt-[12px]"
                             editable={edit}
                             rawContentState={postData?.rawContentState || rawContentState}
                             onChange={setRawContentState}
@@ -171,14 +201,14 @@ export default function PostCard({ postData, edit = true }: { postData?: PostDat
                         />
                     )}
 
-                    {type === 'Vote' && (
+                    {type === 'Bình chọn' && (
                         <Vote
                             edit={!postData?.voteData}
                             voteData={postData?.voteData || voteData}
                             onChange={setVoteData}
                         />
                     )}
-                    {files.length > 0 && (
+                    {files.length > 0 && !isPreview && (
                         <div className="px-[12px] mt-[16px]">
                             <div className="text-[18px] font-semibold">Tập tin: </div>
                             <div className="grid grid-cols-3 gap-y-[8px]">
@@ -201,12 +231,14 @@ export default function PostCard({ postData, edit = true }: { postData?: PostDat
                                         >
                                             <span className="truncate text-[13px]">{file.name}</span>
                                         </a>
-                                        <div
-                                            className="h-full flex items-center cursor-pointer pl-[8px]"
-                                            onClick={() => handleRemoveFile(index)}
-                                        >
-                                            <FontAwesomeIcon icon={faXmark} />
-                                        </div>
+                                        {edit && (
+                                            <div
+                                                className="h-full flex items-center cursor-pointer pl-[8px]"
+                                                onClick={() => handleRemoveFile(index)}
+                                            >
+                                                <FontAwesomeIcon icon={faXmark} />
+                                            </div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -222,7 +254,7 @@ export default function PostCard({ postData, edit = true }: { postData?: PostDat
                                     />
                                 </InputFile>
                             </div>
-                            <div className="flex relative ">
+                            <div className="flex relative z-[20]">
                                 <Button
                                     handleClick={handleClickSubmitButton}
                                     className="rounded-none rounded-tl-lg rounded-bl-lg w-[80px]"
@@ -265,7 +297,7 @@ export default function PostCard({ postData, edit = true }: { postData?: PostDat
                     )}
                 </div>
 
-                {!edit && (
+                {!edit && !isPreview && (
                     <>
                         {postData &&
                             postData.comments &&
