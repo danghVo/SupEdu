@@ -18,9 +18,13 @@ export const minute = new Array(60).fill(-1).map((item, index) => index);
 
 export const day = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
 
-export const classDetailSections = [{ name: 'Lớp học' }, { name: 'Bài tập' }, { name: 'Thành viên' }];
+export const classDetailSections = [
+    { name: 'Lớp học', path: 'post' },
+    { name: 'Bài tập', path: 'exercise' },
+    { name: 'Thành viên', path: 'member' },
+];
 
-export const postType = ['Thông báo', 'Bài tập', 'Vote'];
+export const postType = ['Thông báo', 'Bài tập', 'Bình chọn'];
 
 export const buttonActionName = ['Đăng', 'Đặt hẹn', 'Lưu'];
 
