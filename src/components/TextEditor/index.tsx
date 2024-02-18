@@ -92,7 +92,7 @@ const decorator = new CompositeDecorator([
 ]);
 
 function TextEditor({
-    uuid = window.crypto.randomUUID(),
+    uuid,
     editable,
     rawContentState,
     className = '',
@@ -115,7 +115,7 @@ function TextEditor({
                       blocks: [
                           {
                               text: '',
-                              key: uuid,
+                              key: uuid || crypto.randomUUID(),
                               type: 'unstyled',
                               entityRanges: [],
                               depth: 0,
@@ -173,7 +173,6 @@ function TextEditor({
                 const currentBlockElement = document.querySelector(`div[data-offset-key^="${currentBlockKey}"]`);
                 if (currentBlockElement) {
                     const currentBlockElementRect = currentBlockElement!.getBoundingClientRect();
-                    console.log(currentBlockElementRect.top, wrapperRect.top);
 
                     offsetTop = currentBlockElementRect.top + 4 - wrapperRect.top;
                 }
@@ -505,8 +504,6 @@ function TextEditor({
         const targetElement = e.target as HTMLDivElement;
         window.getSelection()?.collapse(targetElement);
     };
-
-    console.log(toolboxType.offsetTop);
 
     return (
         <div className={`${className} w-full px-[12px]`}>
