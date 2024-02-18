@@ -2,6 +2,7 @@
     {
         "author": "teacher A",
         "type": "Bài tập",
+        "title": "Bài tập 1",
         "timeTaskEnd": {
             "date": "4/2/2024",
             "time": "14:50"
@@ -98,6 +99,7 @@
     {
         "author": "teacher A",
         "type": "Bài tập",
+        "title": "Bài tập 2",
         "timeTaskEnd": {
             "date": "4/2/2024",
             "time": "15:10"
@@ -193,7 +195,8 @@
     },
     {
         "author": "teacher B",
-        "type": "Vote",
+        "type": "Bình chọn",
+        "title": "Kiểm tra bình chọn",
         "timeTaskEnd": {
             "date": "2/3/2024",
             "time": "17:41"
@@ -209,11 +212,11 @@
             "option": [
                 {
                     "value": "có",
-                    "percentage": 0
+                    "percentage": 70
                 },
                 {
                     "value": "không",
-                    "percentage": 0
+                    "percentage": 30
                 }
             ]
         }
