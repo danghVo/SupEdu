@@ -1,7 +1,7 @@
 import classNames from 'classnames/bind';
 import { KeyboardEventHandler, Ref, forwardRef, useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleCheck, faCircleExclamation, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faCircleCheck, faCircleExclamation, faEraser, faXmark } from '@fortawesome/free-solid-svg-icons';
 
 import { useValid } from '~/hooks';
 import styles from './Input.module.scss';
@@ -17,7 +17,7 @@ export interface InputProps {
     inputType?: string;
     rules?: Array<rule>;
     reset?: boolean;
-    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+    onChange: (e: string) => void;
     placeholder?: string;
     iconNode?: React.ReactNode;
     className?: string;
@@ -105,13 +105,24 @@ function Input(
                         value={value}
                         autoComplete="off"
                         data-error={message}
-                        onChange={onChange}
+                        onChange={(e) => {
+                            onChange(e.target.value);
+                        }}
                         placeholder={placeholder}
                         onFocus={onFocus}
                         onBlur={onBlur}
                     />
                 </div>
-                {reset && <FontAwesomeIcon icon={faXmark} className="cursor-pointer px-5 text-slate-600 text-3xl" />}
+                {reset && (
+                    <FontAwesomeIcon
+                        onMouseDown={(e) => {
+                            e.preventDefault();
+                            onChange('');
+                        }}
+                        icon={faEraser}
+                        className="text-black cursor-pointer px-5 text-3xl"
+                    />
+                )}
             </div>
             {errMess && <div className={cs('input-message')}>{errMess}</div>}
         </div>
