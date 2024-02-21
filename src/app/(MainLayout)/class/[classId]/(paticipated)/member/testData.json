@@ -1,0 +1,20 @@
+[
+    {
+        "name": "student A",
+        "avatar": "student",
+        "isOnline": true,
+        "role": "student"
+    },
+    {
+        "name": "student B",
+        "avatar": "student",
+        "isOnline": true,
+        "role": "student"
+    },
+    {
+        "name": "student C",
+        "avatar": "student",
+        "isOnline": false,
+        "role": "student"
+    }
+]
