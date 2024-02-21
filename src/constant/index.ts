@@ -30,6 +30,13 @@ export const buttonActionName = ['Đăng', 'Đặt hẹn', 'Lưu'];
 
 export const fontSizeEditor = ['normal', 'medium', 'big'];
 
+export const roleTranslate: {
+    [index: string]: string;
+} = {
+    student: 'học viên',
+    teacher: 'giáo viên',
+};
+
 export interface FileType {
     name: string;
     path: string;
