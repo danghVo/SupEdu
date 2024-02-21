@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 
 interface rule {
     valid: (checkedData: string) => { message: string; isValid: boolean };
@@ -7,7 +7,7 @@ interface rule {
 function useValid(checkedData: string, rules: Array<rule>) {
     const [message, setMessage] = useState('');
 
-    const valid = () => {
+    useEffect(() => {
         let violate = false;
 
         rules.forEach((rule) => {
@@ -22,9 +22,9 @@ function useValid(checkedData: string, rules: Array<rule>) {
         if (!violate) {
             setMessage('');
         }
-    };
+    }, [checkedData]);
 
-    return { valid, message };
+    return { message };
 }
 
 export default useValid;
