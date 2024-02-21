@@ -57,7 +57,9 @@ function InputFile(
 
     return (
         <div className={cs('wrapper')}>
-            {<div onClick={handleOpenInputFile}>{children}</div> || (
+            {children ? (
+                <div onClick={handleOpenInputFile}>{children}</div>
+            ) : (
                 <>
                     {label && <div className={cs('label')}>{label}</div>}
                     <div className={cs('input')}>
@@ -71,7 +73,15 @@ function InputFile(
 
             {isRequire && !file && <div className={cs('required')}>Không được để trống</div>}
             <div className="hidden">
-                <Input value={addFile} inputType="file" accept="*" rules={[]} onChange={handleFile} ref={inputRef} />
+                <Input
+                    value={addFile}
+                    inputType="file"
+                    accept="*"
+                    rules={[]}
+                    onChange={() => {}}
+                    onFileChange={handleFile}
+                    ref={inputRef}
+                />
             </div>
         </div>
     );
