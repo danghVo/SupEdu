@@ -2,14 +2,14 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export default function Selection({
-    label,
+    label = '',
     optionData,
     className = '',
     bgTheme = 'var(--text-color)',
     onChange,
     defaultSelection,
 }: {
-    label: string;
+    label?: string;
     optionData: Array<string>;
     className?: string;
     onChange: (selection: string) => void;
@@ -28,11 +28,11 @@ export default function Selection({
 
     return (
         <div
-            className={className + ' relative px-[18px] py-[8px] cursor-pointer w-[250px]'}
+            className={'relative px-[18px] py-[8px] cursor-pointer w-[250px] ' + className}
             onClick={() => setOpenOption((prev) => !prev)}
         >
             <div className="truncate">
-                {label}: <span>{selection}</span>
+                {label ? label + ':' : ''} <span>{selection}</span>
             </div>
 
             <AnimatePresence>
@@ -41,7 +41,7 @@ export default function Selection({
                         initial={{ height: 0 }}
                         animate={{ height: 'fit-content' }}
                         exit={{ height: 0 }}
-                        className={`absolute top-[120%] right-0 left-0 w-full bg-white text-black z-30 rounded-[25px] overflow-hidden shadow-custom-2`}
+                        className={`absolute top-[120%] right-0 left-0 w-full bg-white text-black z-30 rounded-lg overflow-hidden shadow-custom-2`}
                     >
                         {optionData.map((item, index) => (
                             <div
