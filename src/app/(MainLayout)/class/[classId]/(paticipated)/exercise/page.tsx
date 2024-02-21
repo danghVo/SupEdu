@@ -10,7 +10,7 @@ export default function Page() {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             <div className={`flex flex-col items-center gap-[64px] relative z-50`}>
                 {testData.map((item, index) => (
-                    <Link href={`exercise/${index}`} className="w-full flex justify-center">
+                    <Link key={index} href={`exercise/${index}`} className="w-full flex justify-center">
                         <PostCard key={index} postData={item} edit={false} isPreview />
                     </Link>
                 ))}

@@ -1,6 +1,13 @@
 'use client';
 
-import { faArrowLeft, faCircleNotch, faXmark } from '@fortawesome/free-solid-svg-icons';
+import {
+    faArrowLeft,
+    faChartColumn,
+    faCircleNotch,
+    faPen,
+    faPenToSquare,
+    faXmark,
+} from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import Image from 'next/image';
 import { useState } from 'react';
@@ -17,6 +24,7 @@ export default function Page({ params, exercise = testData }: { params: { exerci
     const [files, setAddFile, setRemoveFile] = useFile(exercise.files);
     const [isEdit, setIsEdit] = useState(exercise.files.length === 0);
     const [isLoadingFile, setIsLoadingFile] = useState(false);
+    const [currnentSection, setCurrentSection] = useState<string | null>(null);
     const router = useRouter();
     const pathName = usePathname();
 
@@ -41,16 +49,13 @@ export default function Page({ params, exercise = testData }: { params: { exerci
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
-            <div
-                onClick={handleBackToExercise}
-                className="w-[40px] h-[40px] bg-white shadow-custom-1 flex items-center justify-center rounded-full mb-[16px] cursor-pointer"
-            >
-                <FontAwesomeIcon icon={faArrowLeft} />
-            </div>
             <div className="flex items-start gap-[32px] relative">
                 <PostCard postData={exercise} edit={false} />
                 <div className="grow h-fit bg-white rounded-2xl px-[16px] py-[16px] sticky top-[16px] shadow-custom-1">
-                    <div className="font-semibold text-[24px]">Bài tập của bạn</div>
+                    <div className="font-semibold flex items-center justify-between">
+                        <div className="text-[20px]">Bài tập của bạn</div>
+                        <div className="text-[16px]">Điểm: 0/100</div>
+                    </div>
                     {files.length > 0 ? (
                         <div className="mt-[8px] px-[12px] relative flex flex-col items-center">
                             <AnimatePresence>
@@ -102,14 +107,19 @@ export default function Page({ params, exercise = testData }: { params: { exerci
                             ))}
                         </div>
                     ) : (
-                        <div>
-                            <InputFile onChange={setAddFile} />
-                        </div>
+                        isEdit && (
+                            <InputFile onChange={setAddFile}>
+                                <Button className="w-full rounded-lg mt-[16px]" handleClick={() => {}}>
+                                    Thêm tập tin
+                                </Button>
+                            </InputFile>
+                        )
                     )}
+
                     <Button
                         handleClick={hanldeSubmit}
                         theme={!isEdit ? 'fill' : 'default'}
-                        className={`w-full rounded-lg mt-[16px] ${isLoadingFile ? 'opacity-80' : ''}`}
+                        className={`w-full rounded-lg mt-[8px] ${isLoadingFile ? 'opacity-80' : ''}`}
                     >
                         {!isEdit ? 'Hủy nộp bài' : 'Nộp bài'}
                     </Button>
