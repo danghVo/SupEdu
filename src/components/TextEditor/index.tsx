@@ -507,7 +507,7 @@ function TextEditor({
 
     return (
         <div className={`${className} w-full px-[12px]`}>
-            {editable && <div className="text-[18px] font-semibold font-bold">{label}:</div>}
+            {editable && <div className="text-[18px] font-semibold">{label}:</div>}
 
             <div ref={wrapperRef} className={`relative`} onKeyDown={handleUndo} onMouseDown={handleMouseDown}>
                 <AnimatePresence>
