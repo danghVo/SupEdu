@@ -1,6 +1,21 @@
 {
     "author": "teacher A",
     "type": "Bài tập",
+    "score": 80,
+    "comment": {
+        "blocks": [
+            {
+                "key": "0ed1052b-0e86-4c32-b6bc-b3a776c28e17",
+                "text": "Làm tốt lắm !",
+                "type": "unstyled",
+                "depth": 0,
+                "inlineStyleRanges": [],
+                "entityRanges": [],
+                "data": {}
+            }
+        ],
+        "entityMap": {}
+    },
     "title": "Bài tập 1",
     "timeTaskEnd": {
         "date": "4/2/2024",

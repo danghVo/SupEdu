@@ -1,0 +1,240 @@
+{
+    "avatar": "",
+    "name": "student A",
+    "id": "0",
+    "isOnline": false,
+    "messages": [
+        {
+            "message": {
+                "blocks": [
+                    {
+                        "key": "editor",
+                        "text": "Hiii",
+                        "type": "unstyled",
+                        "depth": 0,
+                        "inlineStyleRanges": [],
+                        "entityRanges": [],
+                        "data": {}
+                    }
+                ],
+                "entityMap": {}
+            },
+            "isMe": true,
+            "sendIn": {
+                "time": "12:30",
+                "date": "4/2/2024"
+            }
+        },
+        {
+            "message": {
+                "blocks": [
+                    {
+                        "key": "editor",
+                        "text": "Hellooo",
+                        "type": "unstyled",
+                        "depth": 0,
+                        "inlineStyleRanges": [],
+                        "entityRanges": [],
+                        "data": {}
+                    }
+                ],
+                "entityMap": {}
+            },
+            "isMe": false,
+            "sendIn": {
+                "time": "12:32",
+                "date": "4/2/2024"
+            }
+        },
+        {
+            "message": {
+                "blocks": [
+                    {
+                        "key": "editor",
+                        "text": "Cậu ngủ chưa",
+                        "type": "unstyled",
+                        "depth": 0,
+                        "inlineStyleRanges": [],
+                        "entityRanges": [],
+                        "data": {}
+                    }
+                ],
+                "entityMap": {}
+            },
+            "isMe": true,
+
+            "sendIn": {
+                "time": "12:35",
+                "date": "4/2/2024"
+            }
+        },
+        {
+            "message": {
+                "blocks": [
+                    {
+                        "key": "editor",
+                        "text": "chưa",
+                        "type": "unstyled",
+                        "depth": 0,
+                        "inlineStyleRanges": [],
+                        "entityRanges": [],
+                        "data": {}
+                    }
+                ],
+                "entityMap": {}
+            },
+            "isMe": false,
+            "sendIn": {
+                "time": "12:45",
+                "date": "4/2/2024"
+            }
+        },
+        {
+            "message": {
+                "blocks": [
+                    {
+                        "key": "editor",
+                        "text": "chưa",
+                        "type": "unstyled",
+                        "depth": 0,
+                        "inlineStyleRanges": [],
+                        "entityRanges": [],
+                        "data": {}
+                    }
+                ],
+                "entityMap": {}
+            },
+            "isMe": false,
+            "sendIn": {
+                "time": "12:45",
+                "date": "4/2/2024"
+            }
+        },
+        {
+            "message": {
+                "blocks": [
+                    {
+                        "key": "editor",
+                        "text": "chưa",
+                        "type": "unstyled",
+                        "depth": 0,
+                        "inlineStyleRanges": [],
+                        "entityRanges": [],
+                        "data": {}
+                    }
+                ],
+                "entityMap": {}
+            },
+            "isMe": false,
+            "sendIn": {
+                "time": "12:45",
+                "date": "4/2/2024"
+            }
+        },
+        {
+            "message": {
+                "blocks": [
+                    {
+                        "key": "editor",
+                        "text": "chưa",
+                        "type": "unstyled",
+                        "depth": 0,
+                        "inlineStyleRanges": [],
+                        "entityRanges": [],
+                        "data": {}
+                    }
+                ],
+                "entityMap": {}
+            },
+            "isMe": false,
+            "sendIn": {
+                "time": "12:45",
+                "date": "4/2/2024"
+            }
+        },
+        {
+            "message": {
+                "blocks": [
+                    {
+                        "key": "editor",
+                        "text": "chưa",
+                        "type": "unstyled",
+                        "depth": 0,
+                        "inlineStyleRanges": [],
+                        "entityRanges": [],
+                        "data": {}
+                    }
+                ],
+                "entityMap": {}
+            },
+            "isMe": false,
+            "sendIn": {
+                "time": "12:45",
+                "date": "4/2/2024"
+            }
+        },
+        {
+            "message": {
+                "blocks": [
+                    {
+                        "key": "editor",
+                        "text": "chưa",
+                        "type": "unstyled",
+                        "depth": 0,
+                        "inlineStyleRanges": [],
+                        "entityRanges": [],
+                        "data": {}
+                    }
+                ],
+                "entityMap": {}
+            },
+            "isMe": false,
+            "sendIn": {
+                "time": "12:45",
+                "date": "4/2/2024"
+            }
+        },
+        {
+            "message": {
+                "blocks": [
+                    {
+                        "key": "editor",
+                        "text": "chưa",
+                        "type": "unstyled",
+                        "depth": 0,
+                        "inlineStyleRanges": [],
+                        "entityRanges": [],
+                        "data": {}
+                    }
+                ],
+                "entityMap": {}
+            },
+            "isMe": false,
+            "sendIn": {
+                "time": "12:45",
+                "date": "4/2/2024"
+            }
+        },
+        {
+            "message": {
+                "blocks": [
+                    {
+                        "key": "editor",
+                        "text": "chưa",
+                        "type": "unstyled",
+                        "depth": 0,
+                        "inlineStyleRanges": [],
+                        "entityRanges": [],
+                        "data": {}
+                    }
+                ],
+                "entityMap": {}
+            },
+            "isMe": false,
+            "sendIn": {
+                "time": "12:45",
+                "date": "4/2/2024"
+            }
+        }
+    ]
+}
