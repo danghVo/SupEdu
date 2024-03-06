@@ -9,7 +9,7 @@ import Link from 'next/link';
 
 export default function Page() {
     return (
-        <div className="shadow-custom-3 flex overflow-hidden h-[80vh] w-[1000px] rounded-[50px] bg-[rgb( 225, 230, 220)]/[.1]">
+        <div className="shadow-custom-3 flex overflow-hidden h-[80vh] w-[1200px] rounded-[50px] bg-[rgb( 225, 230, 220)]/[.1]">
             <Image src={image.signIn} className="w-[50%]" alt="background" />
             <motion.div
                 initial={{ opacity: 0 }}
