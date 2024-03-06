@@ -1,13 +1,37 @@
 'use client';
 import Image from 'next/image';
-import { motion } from 'framer-motion';
+import { motion, useScroll } from 'framer-motion';
+import Link from 'next/link';
+import { QueryClient, useQuery, useQueryClient } from '@tanstack/react-query';
 
 import Input from '~/components/Input';
 import Form from '~/components/Form';
 import image from '~/assets/image';
-import Link from 'next/link';
+import { UserController } from '~/controller';
+import { useState } from 'react';
+import { requiredRule } from '~/components/Input/rules';
+import { useRouter } from 'next/navigation';
 
 export default function Page() {
+    const [email, setEmail] = useState('');
+    const [password, setPassword] = useState('');
+    const [error, setError] = useState('');
+    const router = useRouter();
+    const queryClient = useQueryClient(new QueryClient());
+
+    const handleSubmit = async () => {
+        const userController = new UserController();
+
+        const data = await queryClient.fetchQuery({
+            queryKey: [email, password],
+            queryFn: () => userController.signIn({ email, password }),
+        });
+
+        if (data.error) {
+            setError(data.error);
+        } else router.push('/class');
+    };
+
     return (
         <div className="shadow-custom-3 flex overflow-hidden h-[80vh] w-[1200px] rounded-[50px] bg-[rgb( 225, 230, 220)]/[.1]">
             <Image src={image.signIn} className="w-[50%]" alt="background" />
@@ -26,14 +50,22 @@ export default function Page() {
                     </div>
                 </div>
                 <Form
-                    handleSubmit={() => {}}
+                    handleSubmit={handleSubmit}
                     className="w-full"
+                    errMessage={error}
                     submit={{ content: 'Đăng nhập', custom: 'rounded-full ' }}
                 >
-                    <Input value={''} onChange={() => {}} label="Email" placeholder="example@gmail.com" />
                     <Input
-                        value={''}
-                        onChange={() => {}}
+                        value={email}
+                        rules={[requiredRule]}
+                        onChange={setEmail}
+                        label="Email"
+                        placeholder="example@gmail.com"
+                    />
+                    <Input
+                        value={password}
+                        rules={[requiredRule]}
+                        onChange={setPassword}
                         label="Mật khẩu"
                         inputType="password"
                         placeholder="Mật khẩu"
