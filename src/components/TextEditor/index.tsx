@@ -92,19 +92,23 @@ const decorator = new CompositeDecorator([
 ]);
 
 function TextEditor({
-    uuid,
+    uuid = 'editor',
     editable,
     rawContentState,
     className = '',
+    isToolboxType = true,
+    isToolboxOffetStype = true,
     label,
     onChange,
 }: {
     uuid?: string;
     editable: boolean;
     rawContentState: RawDraftContentState | null;
+    isToolboxType?: boolean;
+    isToolboxOffetStype?: boolean;
     className?: string;
     label: string;
-    onChange: (contentState: RawDraftContentState) => void;
+    onChange?: (contentState: RawDraftContentState) => void;
 }) {
     const [editor, setEditor] = useState<MyEditorState>({
         state: EditorState.createWithContent(
@@ -115,7 +119,7 @@ function TextEditor({
                       blocks: [
                           {
                               text: '',
-                              key: uuid || crypto.randomUUID(),
+                              key: uuid,
                               type: 'unstyled',
                               entityRanges: [],
                               depth: 0,
@@ -251,7 +255,9 @@ function TextEditor({
         if (!inputLink.isFocus) {
             setToolboxOffsetStyle(null);
             setToolboxType((prev) => ({ ...prev, isFocus: false, isOpen: false }));
-            onChange(convertToRaw(editor.state.getCurrentContent()));
+            if (onChange) {
+                onChange(convertToRaw(editor.state.getCurrentContent()));
+            }
         }
     }, [inputLink]);
 
@@ -507,11 +513,11 @@ function TextEditor({
 
     return (
         <div className={`${className} w-full px-[12px]`}>
-            {editable && <div className="text-[18px] font-semibold">{label}:</div>}
+            {editable && label && <div className="text-[18px] font-semibold">{label}:</div>}
 
             <div ref={wrapperRef} className={`relative`} onKeyDown={handleUndo} onMouseDown={handleMouseDown}>
                 <AnimatePresence>
-                    {toolboxOffsetStyle && (
+                    {toolboxOffsetStyle && isToolboxOffetStype && (
                         <motion.div
                             ref={toolboxRef}
                             initial={{ opacity: 0.5 }}
@@ -584,7 +590,7 @@ function TextEditor({
                     )}
                 </AnimatePresence>
                 <AnimatePresence>
-                    {toolboxType.isFocus && (
+                    {toolboxType.isFocus && isToolboxType && (
                         <div
                             className={`absolute flex flex-col items-end gap-[8px]`}
                             style={
