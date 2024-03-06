@@ -23,6 +23,10 @@ export default function MarkScoreModal({ handleCloseModal }: { handleCloseModal:
         }
     };
 
+    const handleSubmit = () => {
+        console.log([score, comment]);
+    };
+
     return (
         <Modal handleCloseModal={handleCloseModal} width={'500px'} height={'fit-conent'}>
             <div className="px-[12px] py-[24px] relative">
@@ -47,7 +51,7 @@ export default function MarkScoreModal({ handleCloseModal }: { handleCloseModal:
                 </div>
 
                 <div className="flex justify-center">
-                    <Button theme="fill" handleClick={() => {}} className="rounded-lg mt-[12px] w-full mx-[12px]">
+                    <Button theme="fill" handleClick={handleSubmit} className="rounded-lg mt-[12px] w-full mx-[12px]">
                         Xác nhận
                     </Button>
                 </div>
