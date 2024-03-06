@@ -10,7 +10,7 @@ import {
     faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 
-import { FileType, TimeData, buttonActionName, fileTypes, postType } from '~/constant';
+import { FileType, TimeData, buttonActionName, fileExtensions, postType } from '~/constant';
 import Button from '../Button';
 import TextEditor from '../TextEditor';
 import Selection from '../Selection';
@@ -83,12 +83,12 @@ export default function PostCard({
 
     const handleAddFile = (file: File) => {
         const extension = file.type.split('/')[1];
-        const type = fileTypes.find((type) => type.type === extension);
+        const type = fileExtensions.find((item) => item.extension === extension);
 
         const newFile = {
             name: file.name,
             path: file.webkitRelativePath,
-            type: type ? type.type : 'unknown',
+            extension: type ? type.extension : 'unknown',
             color: type ? type.color : 'black',
         };
 
@@ -227,7 +227,7 @@ export default function PostCard({
                                         className={`border-2 w-[200px] h-[50px] px-[12px] flex items-center rounded-lg my-[12px]`}
                                     >
                                         <Image
-                                            src={require(`~/assets/filetype/${file.type}.png`)}
+                                            src={require(`~/assets/filetype/${file.extension}.png`)}
                                             className="bg-contain w-fit max-h-full py-[8px] pr-[8px]"
                                             alt="file-type"
                                         />

@@ -38,9 +38,11 @@ export const roleTranslate: {
 };
 
 export interface FileType {
+    uuid?: string;
     name: string;
+    key?: string;
     path: string;
-    type: string;
+    extension: string;
     color: string;
 }
 
@@ -49,19 +51,19 @@ export interface TimeData {
     time: string;
 }
 
-export const fileTypes = [
-    { type: 'csv', color: '#00C650' },
-    { type: 'pdf', color: '#FF3E4C' },
-    { type: 'vnd.openxmlformats-officedocument.wordprocessingml.document', color: '#0072FF' },
-    { type: 'msword', color: '0072FF' },
-    { type: 'png', color: '#005FAD' },
-    { type: 'iso', color: '#0072FF' },
-    { type: 'exe', color: '#0072FF' },
-    { type: 'gif', color: '#FF9908' },
-    { type: 'html', color: '#00C650' },
-    { type: 'java', color: '#FF3E4C' },
-    { type: 'xml', color: '#A140FF' },
-    { type: 'jpg', color: '#00C650' },
-    { type: 'rar', color: '#A140FF' },
-    { type: 'javascript', color: '#ffb246' },
+export const fileExtensions = [
+    { extension: 'csv', color: '#00C650' },
+    { extension: 'pdf', color: '#FF3E4C' },
+    { extension: 'vnd.openxmlformats-officedocument.wordprocessingml.document', color: '#0072FF' },
+    { extension: 'msword', color: '0072FF' },
+    { extension: 'png', color: '#005FAD' },
+    { extension: 'iso', color: '#0072FF' },
+    { extension: 'exe', color: '#0072FF' },
+    { extension: 'gif', color: '#FF9908' },
+    { extension: 'html', color: '#00C650' },
+    { extension: 'java', color: '#FF3E4C' },
+    { extension: 'xml', color: '#A140FF' },
+    { extension: 'jpg', color: '#00C650' },
+    { extension: 'rar', color: '#A140FF' },
+    { extension: 'javascript', color: '#ffb246' },
 ];
