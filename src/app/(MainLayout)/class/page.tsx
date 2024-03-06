@@ -1,7 +1,7 @@
 'use client';
 
 import image from '~/assets/image';
-import ClassItem from './components/ClassItem';
+import ClassItem from './components/classItem';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import InputOption from '~/components/Input/InputOption';
