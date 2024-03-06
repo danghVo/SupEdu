@@ -22,6 +22,7 @@ import Modal from '../Modal';
 import { EditorState, RawDraftContentState } from 'draft-js';
 import Comment, { CommentData } from './Comment';
 import Input from '../Input';
+import checkTimeExprire from '../TextEditor/utils/checkTimeExpire';
 
 const currentDay = new Date();
 
@@ -153,10 +154,17 @@ export default function PostCard({
                                         }
                                     }}
                                 >
-                                    <span className="mr-[4px]">Đến hạn: </span>
-
-                                    <span>{timeTaskEnd.time}, </span>
-                                    <span>{timeTaskEnd.date}</span>
+                                    <span
+                                        className={`${checkTimeExprire(timeTaskEnd.time, timeTaskEnd.date) ? 'text-red-500' : ''}`}
+                                    >
+                                        <span className="mr-[4px]">
+                                            {checkTimeExprire(timeTaskEnd.time, timeTaskEnd.date)
+                                                ? 'Đã hết hạn: '
+                                                : 'Đến hạn: '}
+                                        </span>
+                                        <span>{timeTaskEnd.time}, </span>
+                                        <span>{timeTaskEnd.date}</span>
+                                    </span>
                                 </motion.div>
 
                                 {openTimeTaskEndBox && edit && (
