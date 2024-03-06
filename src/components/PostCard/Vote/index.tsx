@@ -6,14 +6,15 @@ import Button from '~/components/Button';
 import { motion } from 'framer-motion';
 
 interface VoteItem {
-    value: string;
+    uuid?: String;
+    content: string;
     percentage: number;
 }
 
 export interface VoteData {
-    id?: string;
+    uuid?: string;
     title: string;
-    option: Array<VoteItem>;
+    options: Array<VoteItem>;
 }
 
 export default function Vote({
@@ -26,16 +27,16 @@ export default function Vote({
     onChange: (voteDate: VoteData) => void;
 }) {
     const [title, setTitle] = useState('');
-    const [option, setOption] = useState<Array<VoteItem>>([
-        { value: '', percentage: 0 },
-        { value: '', percentage: 0 },
+    const [options, setOptions] = useState<Array<VoteItem>>([
+        { content: '', percentage: 0 },
+        { content: '', percentage: 0 },
     ]);
     const [selection, setSelection] = useState<string | null>(null);
     const [error, setError] = useState('');
 
     useEffect(() => {
         if (voteData) {
-            setOption(voteData.option);
+            setOptions(voteData.options);
             setTitle(voteData.title);
         }
     }, []);
@@ -44,34 +45,34 @@ export default function Vote({
         if (!error) {
             onChange({
                 title,
-                option,
+                options,
             });
         }
-    }, [title, option]);
+    }, [title, options]);
 
     useEffect(() => {});
 
     const handleChangeOption = (e: any, index: number) => {
         const value = e.target.value;
 
-        if (option.find((item) => item.value === value)) {
+        if (options.find((item) => item.content === value)) {
             setError('Không được có lựa chọn trùng nhau');
         } else if (error) {
             setError('');
         }
 
-        option[index].value = value;
+        options[index].content = value;
 
-        setOption([...option]);
+        setOptions([...options]);
     };
 
     const hanldeAddNewOption = () => {
-        setOption((prev) => [...prev, { value: '', percentage: 0 }]);
+        setOptions((prev) => [...prev, { content: '', percentage: 0 }]);
     };
 
     const handleRemoveOption = (removedIndex: number) => {
-        if (option.length > 2) {
-            setOption((prev) => prev.filter((item, index) => index !== removedIndex));
+        if (options.length > 2) {
+            setOptions((prev) => prev.filter((item, index) => index !== removedIndex));
         } else {
             setError('Không được có ít hơn 2 lựa chọn');
         }
@@ -81,7 +82,7 @@ export default function Vote({
         if (!edit) {
             setSelection(selection);
 
-            if (voteData?.id) {
+            if (voteData?.uuid) {
                 // POST selection
             }
         }
@@ -89,7 +90,7 @@ export default function Vote({
 
     const handleClear = () => {
         setTitle('');
-        setOption(Array(2).fill({ value: '', percentage: 0 }));
+        setOptions(Array(2).fill({ value: '', percentage: 0 }));
     };
 
     const handleRemoveSelection = () => {
@@ -127,21 +128,21 @@ export default function Vote({
                 </div>
             )}
             <div className="mx-[16px] my-[12px]">
-                {option.map((item, index) => (
+                {options.map((option, index) => (
                     <div key={index}>
                         <motion.div
                             className={`px-[12px] my-[16px] shadow-custom-4 rounded-full overflow-hidden flex items-center`}
                             initial={{ border: '0px solid transparent' }}
                             animate={
-                                selection === item.value && !edit
+                                selection === option.content && !edit
                                     ? { border: '2px solid green' }
                                     : { border: '0px solid transparent' }
                             }
-                            onClick={() => handleChooseOption(item.value)}
+                            onClick={() => handleChooseOption(option.content)}
                         >
                             <div
                                 className={`cursor-pointer h-[16px] flex items-center ${
-                                    selection === item.value && !edit
+                                    selection === option.content && !edit
                                         ? 'relative before:content-[""] before:block before:absolute before:top-0 before:w-full before:h-full before:bg-green-500 before:rounded-full'
                                         : ''
                                 }`}
@@ -151,7 +152,7 @@ export default function Vote({
                             <input
                                 className={`px-[8px] py-[8px] w-full outline-none ${!edit ? 'cursor-pointer' : ''}`}
                                 placeholder={`Lựa chọn ${index + 1}`}
-                                value={item.value}
+                                value={option.content}
                                 readOnly={!edit}
                                 onChange={(e) => handleChangeOption(e, index)}
                             />
@@ -167,11 +168,11 @@ export default function Vote({
                         {selection && !edit && (
                             <div className="flex items-center gap-[16px] px-[8px]">
                                 <motion.div
-                                    className={`h-[20px] ${selection === item.value ? 'bg-green-500' : 'bg-black'} rounded-full`}
+                                    className={`h-[20px] ${selection === option.content ? 'bg-green-500' : 'bg-black'} rounded-full`}
                                     initial={{ width: 0 }}
-                                    animate={{ width: item.percentage + '%' }}
+                                    animate={{ width: option.percentage + '%' }}
                                 ></motion.div>
-                                <span className="font-semibold">{item.percentage}%</span>
+                                <span className="font-semibold">{option.percentage}%</span>
                             </div>
                         )}
                     </div>
