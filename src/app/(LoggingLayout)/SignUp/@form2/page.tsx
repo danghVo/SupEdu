@@ -4,7 +4,6 @@ import { useContext } from 'react';
 
 import Form from '~/components/Form';
 import Input from '~/components/Input';
-import InputOption from '~/components/Input/InputOption';
 import { SignUpFormProps } from '../@form1/page';
 import { FormController } from '../layout';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -21,7 +20,6 @@ export default function Page() {
             <Form handleSubmit={() => {}} className="w-full" submit={{ content: 'Tiếp tục', custom: 'rounded-full ' }}>
                 <Input value={''} onChange={() => {}} label="Họ Tên" placeholder="Họ Tên" />
                 <Input value={''} onChange={() => {}} label="Tuổi" inputType="number" />
-                <InputOption value={''} onChange={() => {}} optionData={['Việt Nam', 'Hoa Kỳ']} label="Nơi sinh sống" />
             </Form>
         </>
     );
