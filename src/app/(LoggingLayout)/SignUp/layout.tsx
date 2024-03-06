@@ -41,7 +41,7 @@ export default function Layout(props: {
     };
 
     return (
-        <div className="shadow-custom-3 flex overflow-hidden h-[80vh] w-[1000px] rounded-[50px] bg-[rgb( 225, 230, 220)]/[.1]">
+        <div className="shadow-custom-3 flex overflow-hidden h-[80vh] w-[1200px] rounded-[50px] bg-[rgb( 225, 230, 220)]/[.1]">
             <Image src={image.signIn} className="w-[50%]" alt="background" />
             <FormController.Provider value={{ onBackward: handleBackward, onForward: handleForward }}>
                 {[props.form1, props.form2, props.form3].map((form, index) => {
