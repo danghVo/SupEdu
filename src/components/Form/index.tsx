@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import Button from '../Button';
+import { motion } from 'framer-motion';
 
 interface FormProps {
     children: React.ReactNode;
     className?: string;
     handleSubmit: () => void;
+    errMessage?: string;
     submit: {
         custom?: string;
         content: string;
@@ -13,10 +15,13 @@ interface FormProps {
     props?: any;
 }
 
-function Form({ children, className = '', handleSubmit, submit, customError = '', ...props }: FormProps) {
+function Form({ children, className = '', handleSubmit, submit, errMessage, customError = '', ...props }: FormProps) {
     const [error, setError] = useState('');
     const formRef = useRef<HTMLDivElement>(null);
-    const submitRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        setError(errMessage || '');
+    }, [errMessage]);
 
     useEffect(() => {
         const formElement = formRef.current;
@@ -33,11 +38,9 @@ function Form({ children, className = '', handleSubmit, submit, customError = ''
     const handleCheckForSubmit = () => {
         let valid = true;
         const formElement = formRef.current;
-        const submitElement = submitRef.current;
 
-        if (formElement && submitElement) {
+        if (formElement) {
             const inputElements = formElement.querySelectorAll('input');
-
             Array.from(inputElements).forEach((inputElement) => {
                 const error = inputElement.getAttribute('data-error');
                 if (inputElement.value === '' && error) {
@@ -58,7 +61,15 @@ function Form({ children, className = '', handleSubmit, submit, customError = ''
             className={`max-w-[450px] flex-col items-center justify-center rounded-xl p-8 ${className}`}
             {...props}
         >
-            {error && <div className={` ${customError}`}>{error}</div>}
+            {error && (
+                <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className={`bg-red-200 text-red-700 py-[12px] px-[16px] rounded-2xl ${customError}`}
+                >
+                    {error}
+                </motion.div>
+            )}
             {children}
             <div className="w-full flex justify-center">
                 <Button
