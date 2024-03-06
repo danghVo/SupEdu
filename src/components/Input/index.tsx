@@ -102,7 +102,7 @@ function Input(
                         id={label}
                         type={inputType}
                         accept={accept}
-                        className={`w-full ${statusIcon.name ? 'pl-[8px]' : 'pl-[12px]'} pr-2 py-6 outline-none ${className}`}
+                        className={`w-full ${statusIcon.name ? 'pl-[16px]' : 'pl-[18px]'} pr-2 py-6 outline-none ${className}`}
                         onKeyUp={handleKeyUp}
                         value={value}
                         autoComplete="off"
