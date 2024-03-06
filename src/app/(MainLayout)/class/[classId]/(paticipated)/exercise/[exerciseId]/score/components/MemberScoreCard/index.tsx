@@ -7,8 +7,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCaretDown, faCaretUp } from '@fortawesome/free-solid-svg-icons';
 import Input from '~/components/Input';
 import { AnimatePresence } from 'framer-motion';
-import Modal from '~/components/Modal';
-import TextEditor from '~/components/TextEditor';
 import MarkScoreModal from './components/MarkScoreModal';
 import colorLevel from '~/components/TextEditor/utils/colorLevel';
 
