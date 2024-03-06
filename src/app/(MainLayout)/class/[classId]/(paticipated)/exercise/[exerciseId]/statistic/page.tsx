@@ -2,7 +2,7 @@
 
 import BarChart from '~/components/BarChart';
 
-const data = ['50', '20', '40', '30', '20', '60', '80', '90', '100', '95', '70', '75'];
+const data = ['90', '20', '40', '30', '20', '60', '80', '90', '100', '95', '70', '75'];
 
 export default function page() {
     return (
