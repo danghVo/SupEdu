@@ -49,17 +49,16 @@
 
 .input {
     background-color: white;
-    // white-space: nowrap;
+    max-width: 200px;
     display: flex;
     align-items: center;
-    padding: 12px 24px 12px 12px;
     border-radius: 50px;
 
     .btn {
         background-color: black;
         color: white;
         white-space: nowrap;
-        padding: 4px 8px;
+        padding: 8px 12px;
         margin-right: 8px;
         border-radius: 50px;
         cursor: pointer;
