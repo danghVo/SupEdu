@@ -6,6 +6,13 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
 import InputOption from '~/components/Input/InputOption';
 import Selection from '~/components/Selection';
+import { QueryClient, useQueryClient } from '@tanstack/react-query';
+import { userAgent } from 'next/server';
+import { ClassController } from '~/controller/class.controller';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import Button from '~/components/Button';
+import CreateClassModal from './components/createClassModal';
 
 export interface coordinateItem {
     id: number;
@@ -31,10 +38,7 @@ const classOfUserRaw = [
             avartar: image.teacher,
         },
         description: 'Class Of A',
-        background: {
-            from: 'from-[#0c7076]',
-            to: 'to-[#9d0020]',
-        },
+        background: 'from-[#0c7076] to-[#9d0020]',
         isLive: true,
         exercises: [
             {
@@ -59,10 +63,7 @@ const classOfUserRaw = [
             avartar: image.teacher,
         },
         description: 'Class Of B',
-        background: {
-            from: 'from-[#0c7076]',
-            to: 'to-[#9d0020]',
-        },
+        background: 'from-[#0c7076] to-[#9d0020]',
         isLive: false,
         exercises: [
             {
@@ -83,10 +84,7 @@ const classOfUserRaw = [
             avartar: image.teacher,
         },
         description: 'Class Of C',
-        background: {
-            from: 'from-[#0c7076]',
-            to: 'to-[#9d0020]',
-        },
+        background: 'from-[#0c7076] to-[#9d0020]',
         isLive: false,
         exercises: [
             {
@@ -101,9 +99,18 @@ const classOfUserRaw = [
     },
 ];
 
-const filter = [{ name: 'Trạng thái', choice: ['Đang hoạt động', 'Tất cả', 'Lớp học cũ'] }];
+export interface FormData {
+    name: string;
+    description: string;
+    password: string;
+    background: {
+        to: string;
+        from: string;
+        image: File | null;
+    };
+}
 
-const activeFilter = 'Đang hoạt động';
+const filter = [{ name: 'Trạng thái', choice: ['Đang hoạt động', 'Tất cả', 'Lớp học cũ'] }];
 
 export default function Page() {
     const [classOfUser, setClassOfUser] = useState(classOfUserRaw);
@@ -116,7 +123,25 @@ export default function Page() {
         ),
         coordinateItems: [],
     });
+    const [openModal, setOpenModal] = useState(false);
+    const [formData, setFormData] = useState<FormData>({
+        name: '',
+        description: '',
+        password: '',
+        background: {
+            from: '#000000',
+            to: '#000000',
+            image: null,
+        },
+    });
     const constraintsRef = useRef<HTMLDivElement>(null);
+    const queryClient = useQueryClient(new QueryClient());
+
+    console.log(queryClient.getQueryData(['user']));
+
+    // useEffect(() => {
+    //     fetchClasses();
+    // }, []);
 
     useEffect(() => {
         if (!dragMode.enable && dragMode.coordinateItems.length > 0) {
@@ -154,6 +179,18 @@ export default function Page() {
         }
     }, [dragMode.coordinateItems]);
 
+    // const fetchClasses = async () => {
+    //     const classController = new ClassController();
+
+    //     const data = queryClient.fetchQuery({
+    //         queryKey: [],
+
+    //         queryFn: () => classController.getClasses(),
+    //     });
+
+    //     console.log(data);
+    // };
+
     return (
         <div className="px-[24px] py-[32px] min-h-full mx-[12px]">
             <div className="font-bold text-[32px] mb-[32px]">Các lớp học của bạn</div>
@@ -176,6 +213,15 @@ export default function Page() {
                         />
                     </div>
                 ))}
+                <Button
+                    handleClick={() => {
+                        setOpenModal(true);
+                    }}
+                    className="w-[150px]"
+                >
+                    <FontAwesomeIcon icon={faPlus} />
+                    Tạo lớp mới
+                </Button>
             </div>
             <div
                 className="grid lg:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-x-[32px] gap-y-[64px] justify-center"
@@ -192,6 +238,16 @@ export default function Page() {
                     </div>
                 ))}
             </div>
+
+            {openModal && (
+                <CreateClassModal
+                    formData={formData}
+                    onChange={setFormData}
+                    handleCloseModal={() => {
+                        setOpenModal(false);
+                    }}
+                />
+            )}
         </div>
     );
 }

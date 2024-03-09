@@ -15,7 +15,7 @@
             {
                 "name": "SidebarItem.js",
                 "path": "",
-                "type": "javascript",
+                "extension": "javascript",
                 "color": "#ffb246"
             }
         ],
@@ -112,7 +112,7 @@
             {
                 "name": "SidebarItem.js",
                 "path": "",
-                "type": "javascript",
+                "extension": "javascript",
                 "color": "#ffb246"
             }
         ],
@@ -209,7 +209,7 @@
         "rawContentState": null,
         "voteData": {
             "title": "Bình chọn",
-            "option": [
+            "options": [
                 {
                     "value": "có",
                     "percentage": 70

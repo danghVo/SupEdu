@@ -89,7 +89,7 @@ export default function Page({
                                         className={`border-2 w-full h-[50px] px-[12px] flex items-center rounded-lg my-[12px]`}
                                     >
                                         <Image
-                                            src={require(`~/assets/filetype/${file.type}.png`)}
+                                            src={require(`~/assets/extension/${file.extension}.png`)}
                                             className="bg-contain w-fit max-h-full py-[8px] pr-[8px]"
                                             alt="file-type"
                                         />

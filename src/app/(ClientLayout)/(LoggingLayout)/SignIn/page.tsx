@@ -17,15 +17,18 @@ export default function Page() {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const router = useRouter();
-    const queryClient = useQueryClient(new QueryClient());
+    const queryClient = useQueryClient();
 
     const handleSubmit = async () => {
         const userController = new UserController();
 
         const data = await queryClient.fetchQuery({
-            queryKey: [email, password],
+            queryKey: ['user'],
             queryFn: () => userController.signIn({ email, password }),
         });
+
+        queryClient.setQueryData(['user'], data);
+        console.log(queryClient.getQueryData(['user']));
 
         if (data.error) {
             setError(data.error);
@@ -52,7 +55,7 @@ export default function Page() {
                 <Form
                     handleSubmit={handleSubmit}
                     className="w-full"
-                    errMessage={error}
+                    errMessage={{ message: error }}
                     submit={{ content: 'Đăng nhập', custom: 'rounded-full ' }}
                 >
                     <Input

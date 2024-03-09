@@ -18,10 +18,7 @@ export interface classItem {
         avartar: StaticImport;
     };
     description: string;
-    background: {
-        from: string;
-        to: string;
-    };
+    background: string;
     isLive: boolean;
     exercises: Array<{ name: string; isDone: boolean }>;
 }
@@ -179,9 +176,22 @@ export default function ClassItem({
                         Live
                     </div>
                 )}
-                <div
-                    className={`absolute top-0 h-full flex items-center w-full bg-gradient-to-r ${classItem.background.from} ${classItem.background.to} rounded-t-[25px] overflow-hidden`}
-                ></div>
+
+                {classItem.background.includes('from') ? (
+                    <div
+                        className={`absolute top-0 h-full flex items-center w-full ${classItem.background} bg-gradient-to-r rounded-t-[25px] overflow-hidden`}
+                    ></div>
+                ) : (
+                    <></>
+                    // <Image
+                    //     src={classItem.background}
+                    //     alt="class background"
+                    //     width={387}
+                    //     height={100}
+                    //     className="absolute w-full h-[100px] object-cover rounded-t-[25px]"
+                    // />
+                )}
+
                 <div className="w-full h-full flex flex-col items-center px-[12px] justify-center translate-y-[-18px]">
                     <Image
                         src={classItem.teacher.avartar}
