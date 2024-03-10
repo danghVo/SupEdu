@@ -13,6 +13,7 @@ interface ButtonProps extends React.ComponentPropsWithoutRef<'button'> {
     size?: string;
     theme?: string;
     icon?: React.ReactNode;
+    disabled?: boolean;
     handleClick: () => void;
 }
 
@@ -23,21 +24,22 @@ export default function Button({
     theme = 'default',
     size = 'medium',
     icon = null,
+    disabled = false,
     handleClick,
-    ...passprops
 }: ButtonProps) {
     const handleClickButton = (e: React.MouseEvent) => {
-        if (href) {
-            window.open(href, '_blank');
-        }
+        if (!disabled) {
+            if (href) {
+                window.open(href, '_blank');
+            }
 
-        handleClick();
+            handleClick();
+        }
     };
 
     return (
         <button
-            className={`flex items-center justify-center font-medium px-[8px] py-[12px] gap-[8px] rounded-[25px] ${className} ${cs(size, theme)}`}
-            {...passprops}
+            className={`flex items-center justify-center font-medium px-[8px] py-[12px] gap-[8px] rounded-[25px] ${className} ${cs(size, theme)} ${disabled ? 'opacity-80' : ''}`}
             onClick={handleClickButton}
         >
             <span className="">{children}</span>
