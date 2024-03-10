@@ -24,6 +24,7 @@ export interface InputProps {
     onFocus?: (e: React.FormEvent<EventTarget>) => void;
     onBlur?: (e: React.FormEvent<EventTarget>) => void;
     accept?: string;
+    type?: string;
 }
 
 const iconStatusName = {
@@ -54,6 +55,7 @@ function Input(
         onFocus = (e) => {},
         onBlur = (e) => {},
         accept,
+        type = 'stack',
     }: InputProps,
     forwardRef: Ref<HTMLInputElement> | undefined,
 ) {
@@ -80,55 +82,61 @@ function Input(
         }
     };
 
-    const InputTag = textArea ? 'textarea' : 'input';
-
     return (
         <div className={`max-w-full`}>
-            {label && (
-                <label className="font-semibold mb-4 block mt-8" htmlFor={label}>
-                    {label}
-                </label>
-            )}
-            <div
-                className={`relative flex items-center bg-white shadow-custom-2 rounded-[25px] overflow-hidden ${classNameWrapper}`}
-            >
-                {iconNode && <div className="mr-4 text-4xl">{iconNode}</div>}
-                {statusIcon.name && (
-                    <FontAwesomeIcon icon={statusIcon.name} className={`pl-6 text-[${statusIcon.color}]`} />
+            <div className={`${type === 'inline' ? 'flex' : ''}`}>
+                {label && (
+                    <label
+                        className={`font-semibold mb-4 block mt-8 ${type === 'inline' ? 'mx-[12px] w-[100px]' : ''}`}
+                        htmlFor={label}
+                    >
+                        {label}
+                    </label>
                 )}
-                <div className="grow">
-                    <input
-                        ref={forwardRef || undefined}
-                        id={label}
-                        type={inputType}
-                        accept={accept}
-                        className={`w-full ${statusIcon.name ? 'pl-[16px]' : 'pl-[18px]'} pr-2 py-6 outline-none ${className}`}
-                        onKeyUp={handleKeyUp}
-                        value={value}
-                        autoComplete="off"
-                        data-error={message}
-                        onChange={(e) => {
-                            if (inputType === 'file' && onFileChange) {
-                                onFileChange(e);
-                            } else onChange(e.target.value);
-                        }}
-                        placeholder={placeholder}
-                        onFocus={onFocus}
-                        onBlur={onBlur}
-                    />
+                <div
+                    className={`${type === 'inline' ? 'grow' : ''} relative flex items-center bg-white shadow-custom-2 rounded-[25px] overflow-hidden ${classNameWrapper}`}
+                >
+                    {iconNode && <div className="mr-4 text-4xl">{iconNode}</div>}
+                    {statusIcon.name && (
+                        <FontAwesomeIcon icon={statusIcon.name} className={`pl-6 text-[${statusIcon.color}]`} />
+                    )}
+                    <div className="grow">
+                        <input
+                            ref={forwardRef || undefined}
+                            id={label}
+                            type={inputType}
+                            accept={accept}
+                            className={`w-full ${statusIcon.name ? 'pl-[16px]' : 'pl-[18px]'}  pr-2 py-6 outline-none ${className}`}
+                            onKeyUp={handleKeyUp}
+                            value={value}
+                            autoComplete="off"
+                            data-optional={rules.length === 0}
+                            data-error={message}
+                            onChange={(e) => {
+                                if (inputType === 'file' && onFileChange) {
+                                    onFileChange(e);
+                                } else onChange(e.target.value);
+                            }}
+                            placeholder={placeholder}
+                            onFocus={onFocus}
+                            onBlur={onBlur}
+                        />
+                    </div>
+                    {reset && (
+                        <FontAwesomeIcon
+                            onMouseDown={(e) => {
+                                e.preventDefault();
+                                onChange('');
+                            }}
+                            icon={faEraser}
+                            className="text-black cursor-pointer px-5 text-3xl"
+                        />
+                    )}
                 </div>
-                {reset && (
-                    <FontAwesomeIcon
-                        onMouseDown={(e) => {
-                            e.preventDefault();
-                            onChange('');
-                        }}
-                        icon={faEraser}
-                        className="text-black cursor-pointer px-5 text-3xl"
-                    />
-                )}
             </div>
-            {errMess && <div className="text-red-700 bg-red-200 p-[8px] mt-[8px] rounded-lg">{errMess}</div>}
+            {errMess && (
+                <div className="text-red-700 bg-red-200 px-[16px] py-[12px] mt-[16px] rounded-[25px]">{errMess}</div>
+            )}
         </div>
     );
 }
