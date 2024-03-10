@@ -1,3 +1,5 @@
+import { faXmark } from '@fortawesome/free-solid-svg-icons';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useEffect, useState } from 'react';
 import ReactDOM from 'react-dom';
 
@@ -8,7 +10,7 @@ interface ModalProps {
     handleCloseModal: () => void;
 }
 
-export default function Modal({ children, width = '50%', height = '50%', handleCloseModal }: ModalProps) {
+export default function Modal({ children, width = 'w-[50%]', height = 'h-[50%]', handleCloseModal }: ModalProps) {
     const [load, setLoad] = useState(false);
 
     useEffect(() => {
@@ -22,13 +24,17 @@ export default function Modal({ children, width = '50%', height = '50%', handleC
                   className="fixed w-screen h-screen top-0 bg-slate-800/50 z-[1000] flex items-center justify-center"
               >
                   <div
-                      style={{ width, height }}
                       onClick={(e) => {
                           e.stopPropagation();
-                          e.preventDefault();
                       }}
-                      className={`bg-white rounded-xl shadow-custom-1`}
+                      className={`${`${height} ${width}`} bg-white rounded-xl shadow-custom-1 relative`}
                   >
+                      <div
+                          className="absolute right-[16px] top-[8px] cursor-pointer"
+                          onClick={() => handleCloseModal()}
+                      >
+                          <FontAwesomeIcon icon={faXmark} className="h-[32px]" />
+                      </div>
                       {children}
                   </div>
               </div>,
