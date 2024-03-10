@@ -1,40 +1,57 @@
 import { useState } from 'react';
 import { HexColorPicker } from 'react-colorful';
-import Form from '~/components/Form';
+import { useQueryClient } from '@tanstack/react-query';
 
+import { ClassController } from '~/controller/class.controller';
+import Form from '~/components/Form';
+import { requiredRule } from '~/components/Input/rules';
 import Input from '~/components/Input';
 import InputFile from '~/components/Input/InputFile';
-import { requiredRule } from '~/components/Input/rules';
 import Modal from '~/components/Modal';
-import { FormData } from '../../page';
-import { QueryClient, useQueryClient, QueryCache } from '@tanstack/react-query';
-import { ClassController } from '~/controller/class.controller';
+import InputCheckbox from '~/components/Input/InputCheckbox';
 
-export default function CreateClassModal({
-    formData,
-    onChange,
-    handleCloseModal,
-}: {
-    formData: FormData;
-    onChange: (formData: FormData) => void;
-    handleCloseModal: () => void;
-}) {
+export interface FormData {
+    name: string;
+    description: string;
+    password: string;
+    requireApprove: boolean;
+    theme: {
+        to: string;
+        from: string;
+    };
+    background: File | null;
+}
+
+export default function CreateClassModal({ handleCloseModal }: { handleCloseModal: () => void }) {
     const [openColorPicker, setOpenColorPicker] = useState({
         from: false,
         to: false,
     });
-    const queryClient = useQueryClient(new QueryClient());
+    const [formData, setFormData] = useState<FormData>({
+        name: '',
+        description: '',
+        password: '',
+        requireApprove: false,
+        theme: {
+            from: '#000000',
+            to: '#000000',
+        },
+        background: null,
+    });
+    const queryClient = useQueryClient();
 
     const handleSubmit = () => {
-        // const queryData = queryClient.getQueryData('userUuid');
-        // if () {
-        //     const userUuid = queryqlient.userUuid;
-        //     const classController = new ClassController();
-        //     const data = queryClient.fetchQuery({
-        //         queryKey: [formData, userUuid],
-        //         queryFn: () => classController.createClass(formData, userUuid),
-        //     });
-        // }
+        const user: { uuid: string } | undefined = queryClient.getQueryData(['user']);
+
+        const theme = `from-[${formData.theme.from}] to-[${formData.theme.to}]`;
+
+        if (user) {
+            const classController = new ClassController();
+            const data = queryClient.fetchQuery({
+                queryKey: ['create class'],
+                queryFn: () => classController.createClass(formData, user.uuid),
+            });
+        }
     };
 
     return (
@@ -49,7 +66,7 @@ export default function CreateClassModal({
                         classNameWrapper="h-[40px] mt-[12px]"
                         value={formData.name}
                         onChange={(value) => {
-                            onChange({
+                            setFormData({
                                 ...formData,
                                 name: value,
                             });
@@ -61,7 +78,7 @@ export default function CreateClassModal({
                         classNameWrapper="h-[40px] mt-[12px]"
                         value={formData.description}
                         onChange={(value) => {
-                            onChange({
+                            setFormData({
                                 ...formData,
                                 description: value,
                             });
@@ -74,9 +91,20 @@ export default function CreateClassModal({
                         classNameWrapper="h-[40px] mt-[12px]"
                         value={formData.password}
                         onChange={(value) => {
-                            onChange({
+                            setFormData({
                                 ...formData,
                                 password: value,
+                            });
+                        }}
+                    />
+                    <InputCheckbox
+                        className="flex gap-[32px] ml-[12px] mt-[12px]"
+                        label="Yêu cầu phê duyệt"
+                        value={formData.requireApprove}
+                        onChange={(choose) => {
+                            setFormData({
+                                ...formData,
+                                requireApprove: choose,
                             });
                         }}
                     />
@@ -91,7 +119,7 @@ export default function CreateClassModal({
                                         from: !openColorPicker.from,
                                     });
                                 }}
-                                style={{ backgroundColor: formData.background.from }}
+                                style={{ backgroundColor: formData.theme.from }}
                             >
                                 {openColorPicker.from && (
                                     <HexColorPicker
@@ -99,12 +127,12 @@ export default function CreateClassModal({
                                             e.stopPropagation();
                                         }}
                                         className="absolute top-[110%] left-0 w-full h-full z-10"
-                                        color={formData.background.from}
+                                        color={formData.theme.from}
                                         onChange={(color) => {
-                                            onChange({
+                                            setFormData({
                                                 ...formData,
-                                                background: {
-                                                    ...formData.background,
+                                                theme: {
+                                                    ...formData.theme,
                                                     from: color,
                                                 },
                                             });
@@ -120,7 +148,7 @@ export default function CreateClassModal({
                                         to: !openColorPicker.to,
                                     });
                                 }}
-                                style={{ backgroundColor: formData.background.to }}
+                                style={{ backgroundColor: formData.theme.to }}
                             >
                                 {openColorPicker.to && (
                                     <HexColorPicker
@@ -128,12 +156,12 @@ export default function CreateClassModal({
                                             e.stopPropagation();
                                         }}
                                         className="absolute top-[110%] left-0 w-full h-full z-10"
-                                        color={formData.background.to}
+                                        color={formData.theme.to}
                                         onChange={(color) => {
-                                            onChange({
+                                            setFormData({
                                                 ...formData,
-                                                background: {
-                                                    ...formData.background,
+                                                theme: {
+                                                    ...formData.theme,
                                                     to: color,
                                                 },
                                             });
@@ -145,12 +173,9 @@ export default function CreateClassModal({
                             <InputFile
                                 accept="image/*"
                                 onChange={(file) => {
-                                    onChange({
+                                    setFormData({
                                         ...formData,
-                                        background: {
-                                            ...formData.background,
-                                            image: file,
-                                        },
+                                        background: file,
                                     });
                                 }}
                             />
