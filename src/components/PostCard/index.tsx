@@ -1,14 +1,9 @@
-import { use, useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import {
-    faArrowDown,
-    faArrowUpFromBracket,
-    faCaretDown,
-    faCaretUp,
-    faPaperclip,
-    faXmark,
-} from '@fortawesome/free-solid-svg-icons';
+import { faArrowUpFromBracket, faCaretDown, faCaretUp, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { RawDraftContentState } from 'draft-js';
+import Image from 'next/image';
 
 import { FileType, TimeData, buttonActionName, fileExtensions, postType } from '~/constant';
 import Button from '../Button';
@@ -16,10 +11,8 @@ import TextEditor from '../TextEditor';
 import Selection from '../Selection';
 import Vote, { VoteData } from './Vote';
 import InputFile from '../Input/InputFile';
-import Image from 'next/image';
 import TimeSetterBox from './TimeSetterBox';
 import Modal from '../Modal';
-import { EditorState, RawDraftContentState } from 'draft-js';
 import Comment, { CommentData } from './Comment';
 import Input from '../Input';
 import checkTimeExprire from '../TextEditor/utils/checkTimeExpire';
@@ -227,7 +220,7 @@ export default function PostCard({
                                         className={`border-2 w-[200px] h-[50px] px-[12px] flex items-center rounded-lg my-[12px]`}
                                     >
                                         <Image
-                                            src={require(`~/assets/filetype/${file.extension}.png`)}
+                                            src={require(`~/assets/extension/${file.extension}.png`)}
                                             className="bg-contain w-fit max-h-full py-[8px] pr-[8px]"
                                             alt="file-type"
                                         />
