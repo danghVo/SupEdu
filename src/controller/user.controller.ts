@@ -6,7 +6,7 @@ export class UserController {
 
         const res = await auth.signIn(payload);
 
-        if (res?.data['access_token']) {
+        if (res.data.hasOwnProperty('access_token')) {
             window.localStorage.setItem('token', res.data['access_token']);
 
             const profile = await this.profile();
