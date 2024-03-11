@@ -4,28 +4,43 @@ export class HTTP {
     constructor(private accessToken: string | null) {}
 
     async get(url: string, option?: object) {
-        const result = await fetch(this.baseUrl + url, {
-            ...option,
-            headers: {
-                Authorization: this.accessToken ? `Bearer ${this.accessToken}` : '',
-            },
-        });
+        try {
+            const result = await fetch(this.baseUrl + url, {
+                ...option,
+                headers: {
+                    Authorization: this.accessToken ? `Bearer ${this.accessToken}` : '',
+                },
+            });
 
-        return result.json();
+            return result.json();
+        } catch (error) {}
     }
 
-    async post(url: string, payload?: object, option?: object) {
-        const result = await fetch(this.baseUrl + url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: this.accessToken ? `Bearer ${this.accessToken}` : '',
-            },
-            body: JSON.stringify(payload),
-            ...option,
-        });
+    async post(url: string, payload?: any, option?: object, isSendFile?: boolean) {
+        try {
+            let body;
+            if (isSendFile) {
+                body = new FormData();
 
-        return result.json();
+                for (const key in payload) {
+                    body.append(key, payload[key]);
+                }
+            } else body = JSON.stringify(payload);
+
+            const contentType = isSendFile ? 'multipart/form-data' : 'application/json';
+
+            const result = await fetch(this.baseUrl + url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': contentType,
+                    Authorization: this.accessToken ? `Bearer ${this.accessToken}` : '',
+                },
+                body,
+                ...option,
+            });
+
+            return result.json();
+        } catch (error) {}
     }
 
     // async patch(url: string, payload?: object, option?: object) {
