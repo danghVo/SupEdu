@@ -1,17 +1,7 @@
 import classNames from 'classnames/bind';
 
 import styles from './InputFile.module.scss';
-import {
-    ChangeEvent,
-    FormEvent,
-    Ref,
-    SyntheticEvent,
-    forwardRef,
-    useEffect,
-    useImperativeHandle,
-    useRef,
-    useState,
-} from 'react';
+import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import Input from '../index';
 
 const cs = classNames.bind(styles);
@@ -21,13 +11,11 @@ interface InputFileProps {
     label?: string;
     file?: string;
     isRequire?: boolean;
+    accept?: string;
     onChange: (files: File) => void;
 }
 
-function InputFile(
-    { children, label, file, isRequire = false, onChange }: InputFileProps,
-    forwardRef: Ref<{ getFiles: () => Array<File> }>,
-) {
+function InputFile({ children, label, file, isRequire = false, onChange, accept }: InputFileProps) {
     const [addFile, setAddFile] = useState('');
 
     useEffect(() => {
@@ -40,18 +28,15 @@ function InputFile(
         const fileList = e.target.files;
         const newFile = fileList?.item(fileList.length - 1);
 
+        console.log(newFile);
+
         if (newFile) {
             onChange(newFile);
+            setAddFile(newFile.name);
         }
     };
 
-    const handleAddFile = () => {
-        if (inputRef.current) {
-            inputRef.current.click();
-        }
-    };
-
-    const handleOpenInputFile = (e: SyntheticEvent) => {
+    const handleOpenInputFile = () => {
         inputRef.current?.click();
     };
 
@@ -62,11 +47,8 @@ function InputFile(
             ) : (
                 <>
                     {label && <div className={cs('label')}>{label}</div>}
-                    <div className={cs('input')}>
-                        <div className={cs('btn')} onClick={handleAddFile}>
-                            Choose a file
-                        </div>
-                        <div className={cs('file-name')}>{file}</div>
+                    <div className={`${cs('input')}`} onClick={handleOpenInputFile}>
+                        <div className={`${cs('btn')} truncate`}>{addFile ? addFile : 'Chọn hình ảnh'}</div>
                     </div>
                 </>
             )}
@@ -74,10 +56,9 @@ function InputFile(
             {isRequire && !file && <div className={cs('required')}>Không được để trống</div>}
             <div className="hidden">
                 <Input
-                    value={addFile}
+                    value=""
                     inputType="file"
-                    accept="*"
-                    rules={[]}
+                    accept={accept || '*'}
                     onChange={() => {}}
                     onFileChange={handleFile}
                     ref={inputRef}
@@ -87,4 +68,4 @@ function InputFile(
     );
 }
 
-export default forwardRef(InputFile);
+export default InputFile;
