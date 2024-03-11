@@ -10,9 +10,11 @@ import { QueryClient, useQueryClient } from '@tanstack/react-query';
 import { userAgent } from 'next/server';
 import { ClassController } from '~/controller/class.controller';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus } from '@fortawesome/free-solid-svg-icons';
+import { faPlus, faRightToBracket } from '@fortawesome/free-solid-svg-icons';
 import Button from '~/components/Button';
 import CreateClassModal from './components/createClassModal';
+import { open } from 'fs';
+import JoinModal from './components/joinModal';
 
 export interface coordinateItem {
     id: number;
@@ -99,17 +101,6 @@ const classOfUserRaw = [
     },
 ];
 
-export interface FormData {
-    name: string;
-    description: string;
-    password: string;
-    background: {
-        to: string;
-        from: string;
-        image: File | null;
-    };
-}
-
 const filter = [{ name: 'Trạng thái', choice: ['Đang hoạt động', 'Tất cả', 'Lớp học cũ'] }];
 
 export default function Page() {
@@ -123,25 +114,15 @@ export default function Page() {
         ),
         coordinateItems: [],
     });
-    const [openModal, setOpenModal] = useState(false);
-    const [formData, setFormData] = useState<FormData>({
-        name: '',
-        description: '',
-        password: '',
-        background: {
-            from: '#000000',
-            to: '#000000',
-            image: null,
-        },
-    });
+    const [openCreateModal, setOpenCreateModal] = useState(false);
+    const [openJoinModal, setOpenJoinModal] = useState(false);
+
     const constraintsRef = useRef<HTMLDivElement>(null);
-    const queryClient = useQueryClient(new QueryClient());
+    const queryClient = useQueryClient();
 
-    console.log(queryClient.getQueryData(['user']));
-
-    // useEffect(() => {
-    //     fetchClasses();
-    // }, []);
+    useEffect(() => {
+        fetchClasses();
+    }, []);
 
     useEffect(() => {
         if (!dragMode.enable && dragMode.coordinateItems.length > 0) {
@@ -179,23 +160,23 @@ export default function Page() {
         }
     }, [dragMode.coordinateItems]);
 
-    // const fetchClasses = async () => {
-    //     const classController = new ClassController();
+    const fetchClasses = async () => {
+        const classController = new ClassController();
 
-    //     const data = queryClient.fetchQuery({
-    //         queryKey: [],
+        const data = await queryClient.fetchQuery({
+            queryKey: ['classes'],
 
-    //         queryFn: () => classController.getClasses(),
-    //     });
+            queryFn: () => classController.getClasses(),
+        });
 
-    //     console.log(data);
-    // };
+        queryClient.setQueryData(['classes'], data);
+    };
 
     return (
         <div className="px-[24px] py-[32px] min-h-full mx-[12px]">
             <div className="font-bold text-[32px] mb-[32px]">Các lớp học của bạn</div>
 
-            <div className="mb-[64px] flex items-center gap-[5px]">
+            <div className="mb-[64px] flex items-center gap-[16px]">
                 {filter.map((item, index) => (
                     <div
                         key={index}
@@ -215,12 +196,21 @@ export default function Page() {
                 ))}
                 <Button
                     handleClick={() => {
-                        setOpenModal(true);
+                        setOpenCreateModal(true);
                     }}
-                    className="w-[150px]"
+                    className="min-w-[150px] w-[200px]"
                 >
-                    <FontAwesomeIcon icon={faPlus} />
+                    <FontAwesomeIcon className="mr-[12px]" icon={faPlus} />
                     Tạo lớp mới
+                </Button>
+                <Button
+                    handleClick={() => {
+                        setOpenJoinModal(true);
+                    }}
+                    className="min-w-[150px] w-[200px]"
+                >
+                    <FontAwesomeIcon className="mr-[12px]" icon={faRightToBracket} />
+                    Tham gia lớp
                 </Button>
             </div>
             <div
@@ -239,12 +229,18 @@ export default function Page() {
                 ))}
             </div>
 
-            {openModal && (
+            {openCreateModal && (
                 <CreateClassModal
-                    formData={formData}
-                    onChange={setFormData}
                     handleCloseModal={() => {
-                        setOpenModal(false);
+                        setOpenCreateModal(false);
+                    }}
+                />
+            )}
+
+            {openJoinModal && (
+                <JoinModal
+                    handleCloseModal={() => {
+                        setOpenJoinModal(false);
                     }}
                 />
             )}
