@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileType, fileTypes } from '~/constant';
+import { FileType, fileExtensions } from '~/constant';
 
 export default function useFile(
     initFiles?: Array<FileType>,
@@ -8,12 +8,12 @@ export default function useFile(
 
     const setAddFile = (file: File) => {
         const extension = file.type.split('/')[1];
-        const type = fileTypes.find((type) => type.type === extension);
+        const type = fileExtensions.find((item) => item.extension === extension);
 
         const newFile = {
             name: file.name,
             path: file.webkitRelativePath,
-            type: type ? type.type : 'unknown',
+            extension: type ? type.extension : 'unknown',
             color: type ? type.color : 'black',
         };
 
