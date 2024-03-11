@@ -6,7 +6,7 @@ interface FormProps {
     children: React.ReactNode;
     className?: string;
     handleSubmit: () => void;
-    errMessage?: string;
+    errMessage?: { message: string };
     submit: {
         custom?: string;
         content: string;
@@ -20,7 +20,7 @@ function Form({ children, className = '', handleSubmit, submit, errMessage, cust
     const formRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
-        setError(errMessage || '');
+        setError(errMessage?.message || '');
     }, [errMessage]);
 
     useEffect(() => {
@@ -38,18 +38,23 @@ function Form({ children, className = '', handleSubmit, submit, errMessage, cust
     const handleCheckForSubmit = () => {
         let valid = true;
         const formElement = formRef.current;
+        setError('');
 
         if (formElement) {
             const inputElements = formElement.querySelectorAll('input');
             Array.from(inputElements).forEach((inputElement) => {
                 const error = inputElement.getAttribute('data-error');
-                if (inputElement.value === '' && error) {
+                if (error) {
+                    valid = false;
+                }
+                if (inputElement.value === '' && !inputElement.getAttribute('data-optional')) {
                     valid = false;
                     setError(error || 'Vui lòng nhập đầy đủ thông tin');
                 }
             });
 
             if (valid) {
+                setError('');
                 handleSubmit();
             }
         }
@@ -65,7 +70,7 @@ function Form({ children, className = '', handleSubmit, submit, errMessage, cust
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className={`bg-red-200 text-red-700 py-[12px] px-[16px] rounded-2xl ${customError}`}
+                    className={`bg-red-200 text-red-700 py-[12px] px-[16px] mb-[16px] rounded-2xl ${customError}`}
                 >
                     {error}
                 </motion.div>
