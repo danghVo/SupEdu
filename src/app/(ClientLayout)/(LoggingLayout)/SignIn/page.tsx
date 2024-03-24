@@ -27,9 +27,6 @@ export default function Page() {
             queryFn: () => userController.signIn({ email, password }),
         });
 
-        queryClient.setQueryData(['user'], data);
-        console.log(queryClient.getQueryData(['user']));
-
         if (data.error) {
             setError(data.error);
         } else router.push('/class');
