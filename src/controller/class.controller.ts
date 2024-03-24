@@ -11,10 +11,10 @@ export class ClassController {
         return res.data;
     }
 
-    async getClasses() {
+    async getClasses(filter?: string) {
         const classService = new ClassService();
 
-        const res = await classService.getClasses();
+        const res = await classService.getClasses(filter);
 
         return res.data;
     }
