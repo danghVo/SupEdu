@@ -24,7 +24,11 @@ export const classDetailSections = [
     { name: 'Thành viên', path: 'member' },
 ];
 
-export const postType = ['Thông báo', 'Bài tập', 'Bình chọn'];
+export const postType = [
+    { name: 'Thông báo', submit: 'Announcement' },
+    { name: 'Bài tập', submit: 'Exercise' },
+    { name: 'Bình chọn', submit: 'Vote' },
+];
 
 export const buttonActionName = ['Đăng', 'Đặt hẹn', 'Lưu'];
 
@@ -39,8 +43,8 @@ export const roleTranslate: {
 
 export interface FileType {
     uuid?: string;
-    name: string;
     key?: string;
+    name: string;
     path: string;
     extension: string;
     color: string;
