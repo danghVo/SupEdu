@@ -2,6 +2,8 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 
+import image from '~/assets/image';
+
 interface AvatarProps {
     className?: string;
     userInfor: {
@@ -22,7 +24,7 @@ export default function Avatar({ className, userInfor }: AvatarProps) {
             }}
             onMouseLeave={() => [setIsShowInfor(false)]}
         >
-            <Image src={userInfor.avatar} alt="avatar" className={`w-[40px] h-[40px] ${className}`} />
+            <Image src={userInfor.avatar || image.teacher} alt="avatar" className={`w-[40px] h-[40px] ${className}`} />
 
             {isShowInfor && (
                 <motion.div
