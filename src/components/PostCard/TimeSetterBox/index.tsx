@@ -14,9 +14,17 @@ interface SetTimeModalProps {
     time: string;
     onChange: ({ date, time }: TimeData) => void;
     handleCloseBox: () => void;
+    setError?: (error: string) => void;
 }
 
-export default function TimeSetterBox({ label, date, time, onChange, handleCloseBox }: SetTimeModalProps) {
+export default function TimeSetterBox({
+    label,
+    date,
+    time,
+    onChange,
+    handleCloseBox,
+    setError = () => {},
+}: SetTimeModalProps) {
     const [timeSetterData, setTimeSetterData] = useState({
         date: date,
         time: time,
@@ -56,10 +64,17 @@ export default function TimeSetterBox({ label, date, time, onChange, handleClose
 
     const handleChooseDay = (date: string | null) => {
         if (date) {
-            setTimeSetterData((prev) => ({
-                ...prev,
-                date,
-            }));
+            const currentDate = new Date(Date.now()).getDate();
+
+            if (currentDate > parseInt(date)) {
+                setError('Không thể đặt thời gian trong quá khứ');
+            } else {
+                setTimeSetterData((prev) => ({
+                    ...prev,
+                    date,
+                }));
+                setError('');
+            }
         }
     };
 
@@ -92,17 +107,46 @@ export default function TimeSetterBox({ label, date, time, onChange, handleClose
     };
 
     const handleChooseHour = (time: number) => {
-        setTimeSetterData((prev) => ({
-            ...prev,
-            time: `${time}:${prev.time.split(':')[1]}`,
-        }));
+        const now = new Date(Date.now());
+        const currentDate = now.getDate();
+        const currentHour = now.getHours();
+
+        console.log(
+            currentDate,
+            parseInt(timeSetterData.date),
+            currentHour,
+            time,
+            parseInt(timeSetterData.time.split(':')[1]),
+        );
+        if (currentDate === parseInt(timeSetterData.date) && currentHour > time) {
+            setError('Không thể đặt thời gian trong quá khứ');
+        } else {
+            setError('');
+            setTimeSetterData((prev) => ({
+                ...prev,
+                time: `${time}:${prev.time.split(':')[1]}`,
+            }));
+        }
     };
 
     const handleChooseMinute = (time: number) => {
-        setTimeSetterData((prev) => ({
-            ...prev,
-            time: `${prev.time.split(':')[0]}:${time}`,
-        }));
+        const now = new Date(Date.now());
+        const currentDate = now.getDate();
+        const currentHour = now.getHours();
+        const currentMinute = now.getMinutes();
+        if (
+            currentDate === parseInt(timeSetterData.date) &&
+            currentHour === parseInt(timeSetterData.time.split(':')[0]) &&
+            currentMinute > time
+        ) {
+            setError('Không thể đặt thời gian trong quá khứ');
+        } else {
+            setError('');
+            setTimeSetterData((prev) => ({
+                ...prev,
+                time: `${prev.time.split(':')[0]}:${time}`,
+            }));
+        }
     };
 
     return (
@@ -170,7 +214,7 @@ export default function TimeSetterBox({ label, date, time, onChange, handleClose
                 </div>
             </div>
             <Button handleClick={handleSubmit} className="w-full my-[4px] rounded-lg ">
-                Xong
+                Đặt
             </Button>
         </div>
     );
