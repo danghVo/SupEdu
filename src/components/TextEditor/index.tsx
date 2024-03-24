@@ -14,6 +14,7 @@ import {
     convertToRaw,
     CompositeDecorator,
     RawDraftContentState,
+    Modifier,
 } from 'draft-js';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
@@ -511,6 +512,20 @@ function TextEditor({
         window.getSelection()?.collapse(targetElement);
     };
 
+    const handlePastedText = (text: string, html: string | undefined, editorState: EditorState) => {
+        if (text) {
+            const pastedBlocks = ContentState.createFromText(text).getBlockMap();
+            const newState = Modifier.replaceWithFragment(
+                editorState.getCurrentContent(),
+                editorState.getSelection(),
+                pastedBlocks,
+            );
+            const newEditorState = EditorState.push(editorState, newState, 'insert-fragment');
+            handleChange(newEditorState);
+            return 'handled';
+        } else return 'not-handled';
+    };
+
     return (
         <div className={`${className} w-full px-[12px]`}>
             {editable && label && <div className="text-[18px] font-semibold">{label}:</div>}
@@ -691,6 +706,7 @@ function TextEditor({
                     keyBindingFn={handleKeyBinding}
                     handleKeyCommand={handleKeyCommand}
                     blockRendererFn={customRenderBlock}
+                    handlePastedText={handlePastedText}
                     editorState={editor.state}
                     onChange={handleChange}
                     onFocus={handleFocusEditor}
