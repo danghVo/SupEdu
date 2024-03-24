@@ -6,13 +6,16 @@ import { classDetailSections } from '~/constant';
 import SimpleBarReact from 'simplebar-react';
 import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faGear, faPen } from '@fortawesome/free-solid-svg-icons';
+import { faCaretLeft, faCheck, faGear, faPen } from '@fortawesome/free-solid-svg-icons';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
 import Input from '~/components/Input';
 import Button from '~/components/Button';
+import useClass from '~/hooks/useClass';
+import useProfile from '~/hooks/useProfile';
+import Loading from '~/components/Loading/intex';
 
-export default function Main({ classId, children }: { classId: string; children: React.ReactNode }) {
+export default function Main({ classUuid, children }: { classUuid: string; children: React.ReactNode }) {
     const pathName = usePathname();
     const [currentSection, setCurrentSection] = useState(
         classDetailSections.find((classDetailSection) => classDetailSection.path === pathName.split('/')[3]) ||
@@ -22,6 +25,8 @@ export default function Main({ classId, children }: { classId: string; children:
     const [editClassName, setEditClassName] = useState(false);
     const [className, setClassName] = useState('Lớp A');
     const router = useRouter();
+    const { data: classData, isSuccess: isClassSuccess } = useClass(classUuid);
+    const { data: user, isSuccess: isUserSuccess } = useProfile();
 
     const wrapperRef = useRef<HTMLDivElement | null>(null);
 
@@ -57,7 +62,7 @@ export default function Main({ classId, children }: { classId: string; children:
         setEditClassName(false);
     };
 
-    return (
+    return isClassSuccess && isUserSuccess ? (
         <SimpleBarReact
             style={{ maxHeight: '100vh' }}
             classNames={{ track: 'simplebar-track mr-2' }}
@@ -67,30 +72,42 @@ export default function Main({ classId, children }: { classId: string; children:
             <div className="min-h-screen flex-col flex p-[32px] pt-[32px]" ref={wrapperRef}>
                 <div className="flex justify-between items-center mb-[28px]">
                     <div className="font-bold flex items-center justify-between text-[32px]">
-                        {editClassName ? (
+                        <div onClick={() => router.push('/class')} className="cursor-pointer mr-[12px]">
+                            <FontAwesomeIcon icon={faCaretLeft} />
+                        </div>
+                        {classData.owner.uuid === user.uuid ? (
                             <>
-                                <Input classNameWrapper="w-[200px]" value={className} onChange={setClassName} />
-                                <div onClick={handleSubmitClassName} className="text-[24px] ml-[16px] cursor-pointer">
-                                    <FontAwesomeIcon icon={faCheck} />
-                                </div>
+                                {editClassName ? (
+                                    <>
+                                        <Input classNameWrapper="w-[200px]" value={className} onChange={setClassName} />
+                                        <div
+                                            onClick={handleSubmitClassName}
+                                            className="text-[24px] ml-[16px] cursor-pointer"
+                                        >
+                                            <FontAwesomeIcon icon={faCheck} />
+                                        </div>
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>{classData.name}</span>
+                                        <div
+                                            onClick={() => {
+                                                setEditClassName(true);
+                                            }}
+                                            className="text-[24px] ml-[16px] cursor-pointer"
+                                        >
+                                            <FontAwesomeIcon icon={faPen} />
+                                        </div>
+                                    </>
+                                )}
                             </>
                         ) : (
-                            <>
-                                <span>Lớp A</span>
-                                <div
-                                    onClick={() => {
-                                        setEditClassName(true);
-                                    }}
-                                    className="text-[24px] ml-[16px] cursor-pointer"
-                                >
-                                    <FontAwesomeIcon icon={faPen} />
-                                </div>
-                            </>
+                            <div>{classData.name}</div>
                         )}
                     </div>
                     <div className="mr-[64px]">
                         <Button className="rounded-lg bg-red-700 text-white w-[100px]" theme="" handleClick={() => {}}>
-                            Thoát
+                            {user.role === 'TEACHER' ? 'Xóa' : 'Thoát'}
                         </Button>
                     </div>
                 </div>
@@ -98,7 +115,7 @@ export default function Main({ classId, children }: { classId: string; children:
                     {classDetailSections.map((section, index) => (
                         <Link
                             key={index}
-                            href={`/class/${classId}/` + section.path}
+                            href={`/class/${classUuid}/` + section.path}
                             onClick={(event) => handleChangeSection(event, section.name)}
                             className={`text-[18px] font-semibold cursor-pointer px-[12px] py-[8px] relative ${
                                 section.name === currentSection.name ? 'text-white' : ''
@@ -120,5 +137,7 @@ export default function Main({ classId, children }: { classId: string; children:
                 <div className="grow mt-[28px] relative">{children}</div>
             </div>
         </SimpleBarReact>
+    ) : (
+        <Loading />
     );
 }
