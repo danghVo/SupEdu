@@ -3,173 +3,55 @@
 import image from '~/assets/image';
 import ClassItem from './components/classItem';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, MotionConfig, motion } from 'framer-motion';
-import InputOption from '~/components/Input/InputOption';
 import Selection from '~/components/Selection';
-import { QueryClient, useQueryClient } from '@tanstack/react-query';
-import { userAgent } from 'next/server';
+import { useQueryClient } from '@tanstack/react-query';
 import { ClassController } from '~/controller/class.controller';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faRightToBracket } from '@fortawesome/free-solid-svg-icons';
 import Button from '~/components/Button';
 import CreateClassModal from './components/createClassModal';
-import { open } from 'fs';
 import JoinModal from './components/joinModal';
-
-export interface coordinateItem {
-    id: number;
-    startX: number;
-    startY: number;
-    endX: number;
-    endY: number;
-}
-
-export interface dragMode {
-    enable: boolean;
-    target: HTMLDivElement | null;
-    distance: { [key: number]: { from: { x: number; y: number }; to: { x: number; y: number } } };
-    coordinateItems: Array<coordinateItem | null>;
-}
-
-const classOfUserRaw = [
-    {
-        id: 0,
-        name: 'Lớp A',
-        teacher: {
-            name: 'Man A',
-            avartar: image.teacher,
-        },
-        description: 'Class Of A',
-        background: 'from-[#0c7076] to-[#9d0020]',
-        isLive: true,
-        exercises: [
-            {
-                name: 'Task A',
-                isDone: true,
-            },
-            {
-                name: 'Task B',
-                isDone: false,
-            },
-            {
-                name: 'Task B',
-                isDone: false,
-            },
-        ],
-    },
-    {
-        id: 1,
-        name: 'Lớp B',
-        teacher: {
-            name: 'Man B',
-            avartar: image.teacher,
-        },
-        description: 'Class Of B',
-        background: 'from-[#0c7076] to-[#9d0020]',
-        isLive: false,
-        exercises: [
-            {
-                name: 'Task A',
-                isDone: false,
-            },
-            {
-                name: 'Task B',
-                isDone: false,
-            },
-        ],
-    },
-    {
-        id: 2,
-        name: 'Lớp C',
-        teacher: {
-            name: 'Man C',
-            avartar: image.teacher,
-        },
-        description: 'Class Of C',
-        background: 'from-[#0c7076] to-[#9d0020]',
-        isLive: false,
-        exercises: [
-            {
-                name: 'Task A',
-                isDone: false,
-            },
-            {
-                name: 'Task B',
-                isDone: false,
-            },
-        ],
-    },
-];
-
-const filter = [{ name: 'Trạng thái', choice: ['Đang hoạt động', 'Tất cả', 'Lớp học cũ'] }];
+import useProfile from '~/hooks/useProfile';
+import Loading from '~/components/Loading/intex';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 
 export default function Page() {
-    const [classOfUser, setClassOfUser] = useState(classOfUserRaw);
-    const [dragMode, setDragMode] = useState<dragMode>({
-        enable: false,
-        target: null,
-        distance: classOfUser.reduce(
-            (accu, curr) => Object.assign(accu, { [curr.id]: { from: { x: 0, y: 0 }, to: { x: 0, y: 0 } } }),
-            {},
-        ),
-        coordinateItems: [],
-    });
+    const [classShow, setClassShow] = useState<Array<any>>([]);
     const [openCreateModal, setOpenCreateModal] = useState(false);
     const [openJoinModal, setOpenJoinModal] = useState(false);
-
-    const constraintsRef = useRef<HTMLDivElement>(null);
     const queryClient = useQueryClient();
+    const { data: user, isSuccess, refetch, isFetching } = useProfile();
+    const router = useRouter();
 
-    useEffect(() => {
-        fetchClasses();
-    }, []);
+    const filter = useMemo(() => {
+        if (user) {
+            return user.role === 'TEACHER'
+                ? ['Sở hữu', 'Đang tham gia', 'Chờ xác nhận']
+                : ['Đang tham gia', 'Chờ xác nhận'];
+        } else return [];
+    }, [user]);
 
-    useEffect(() => {
-        if (!dragMode.enable && dragMode.coordinateItems.length > 0) {
-            let newClassOfUser = dragMode.coordinateItems.reduce((accu: Array<any>, curr) => {
-                const item = classOfUser.find((item) => item.id === curr!.id);
-                if (item) {
-                    return [...accu, item];
-                } else return accu;
-            }, []);
-
-            setClassOfUser(newClassOfUser);
-            setDragMode((prev) => ({
-                ...prev,
-                coordinateItems: [],
-            }));
-        }
-    }, [dragMode.enable]);
-
-    useEffect(() => {
-        if (dragMode.coordinateItems.length === 0) {
-            setDragMode((prev) => ({
-                ...prev,
-                coordinateItems: Array.from(document.querySelectorAll('div[data-drag]')).map((element) => {
-                    const { top, left } = element.getBoundingClientRect();
-
-                    return {
-                        id: Number.parseInt(element.getAttribute('data-drag')!),
-                        startX: left,
-                        endX: left + element.clientWidth,
-                        startY: top,
-                        endY: top + element.clientHeight,
-                    };
-                }),
-            }));
-        }
-    }, [dragMode.coordinateItems]);
-
-    const fetchClasses = async () => {
+    const fetchClasses = async (seletion: string) => {
         const classController = new ClassController();
 
-        const data = await queryClient.fetchQuery({
-            queryKey: ['classes'],
+        let filter = '';
 
-            queryFn: () => classController.getClasses(),
+        if (seletion === 'Sở hữu') {
+            filter = 'owner';
+        } else if (seletion === 'Đang tham gia') {
+            filter = 'join';
+        } else if (seletion === 'Chờ xác nhận') {
+            filter = 'waiting';
+        }
+
+        const data = await queryClient.fetchQuery({
+            queryKey: ['classShow', filter],
+
+            queryFn: () => classController.getClasses(filter),
         });
 
-        queryClient.setQueryData(['classes'], data);
+        setClassShow(data);
     };
 
     return (
@@ -177,32 +59,28 @@ export default function Page() {
             <div className="font-bold text-[32px] mb-[32px]">Các lớp học của bạn</div>
 
             <div className="mb-[64px] flex items-center gap-[16px]">
-                {filter.map((item, index) => (
-                    <div
-                        key={index}
-                        className={` font-semibold text-[18px] ${
-                            item ? 'bg-[var(--text-color)] rounded-[25px]' : 'opacity-[0.6]'
-                        }`}
-                    >
+                {filter.length > 0 && (
+                    <div className={` font-semibold text-[18px] bg-[var(--text-color)] rounded-[25px]`}>
                         <Selection
                             className="text-white"
                             label="Lớp học"
-                            key={index}
-                            defaultSelection={item.choice[0]}
-                            onChange={() => {}}
-                            optionData={item.choice}
+                            defaultSelection={filter[0]}
+                            onChange={(selection) => fetchClasses(selection)}
+                            optionData={filter}
                         />
                     </div>
-                ))}
-                <Button
-                    handleClick={() => {
-                        setOpenCreateModal(true);
-                    }}
-                    className="min-w-[150px] w-[200px]"
-                >
-                    <FontAwesomeIcon className="mr-[12px]" icon={faPlus} />
-                    Tạo lớp mới
-                </Button>
+                )}
+                {isSuccess && user.role === 'TEACHER' && (
+                    <Button
+                        handleClick={() => {
+                            setOpenCreateModal(true);
+                        }}
+                        className="min-w-[150px] w-[200px]"
+                    >
+                        <FontAwesomeIcon className="mr-[12px]" icon={faPlus} />
+                        Tạo lớp mới
+                    </Button>
+                )}
                 <Button
                     handleClick={() => {
                         setOpenJoinModal(true);
@@ -213,24 +91,23 @@ export default function Page() {
                     Tham gia lớp
                 </Button>
             </div>
-            <div
-                className="grid lg:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-x-[32px] gap-y-[64px] justify-center"
-                ref={constraintsRef}
-            >
-                {classOfUser.map((item, index) => (
-                    <div key={index} data-drag={item.id}>
-                        <ClassItem
-                            constraintDrag={constraintsRef}
-                            dragMode={dragMode}
-                            handleSetDragMode={setDragMode}
-                            classItem={item}
-                        />
-                    </div>
-                ))}
-            </div>
+            {isFetching ? (
+                <Loading />
+            ) : classShow.length === 0 ? (
+                <div className="text-[32px] font-bold text-center ">Không có lớp phù hợp</div>
+            ) : (
+                <div className="grid lg:grid-cols-4 md:grid-cols-2 grid-cols-1 gap-x-[32px] gap-y-[64px] justify-center">
+                    {classShow.map((item, index) => (
+                        <Link href={`/class/${item.uuid}`} key={index} className="cursor-pointer">
+                            <ClassItem classItem={item} />
+                        </Link>
+                    ))}
+                </div>
+            )}
 
             {openCreateModal && (
                 <CreateClassModal
+                    refetchClass={fetchClasses}
                     handleCloseModal={() => {
                         setOpenCreateModal(false);
                     }}
