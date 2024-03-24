@@ -32,7 +32,7 @@ export default function Video(props: any) {
                         onLoad={() => setIsLoad(true)}
                     ></iframe>
                     <div className="w-full h-fit bg-white px-[12px] py-[8px] rounded-lg shadow-custom-5 text-blue-500 overflow-hidden">
-                        <a target="_blank" href={`https://youtube.com/watch?v={props.blockProps.src}`}>
+                        <a target="_blank" href={`https://youtube.com/watch?v=${props.blockProps.src}`}>
                             https://youtube.com/watch?v={props.blockProps.src}
                         </a>
                     </div>
