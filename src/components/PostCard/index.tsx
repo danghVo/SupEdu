@@ -2,7 +2,7 @@ import { useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowUpFromBracket, faCaretDown, faCaretUp, faXmark } from '@fortawesome/free-solid-svg-icons';
-import { RawDraftContentState } from 'draft-js';
+import { RawDraftContentState, convertToRaw } from 'draft-js';
 import Image from 'next/image';
 
 import { FileType, TimeData, buttonActionName, fileExtensions, postType } from '~/constant';
@@ -16,18 +16,20 @@ import Modal from '../Modal';
 import Comment, { CommentData } from './Comment';
 import Input from '../Input';
 import checkTimeExprire from '../TextEditor/utils/checkTimeExpire';
+import TimeTaskEnd from './TimeTaskEnd';
+import { requiredRule } from '../Input/rules';
+import { Fuggles } from 'next/font/google';
 
 const currentDay = new Date();
 
 export interface PostData {
-    author: string;
     title: string;
     type: string;
     timePost: TimeData;
-    rawContentState: RawDraftContentState | null;
+    content: string | null;
     files: Array<FileType>;
     timeTaskEnd?: TimeData;
-    voteData?: VoteData;
+    voteData: VoteData | null;
     comments?: Array<CommentData>;
 }
 
@@ -35,30 +37,44 @@ export default function PostCard({
     postData,
     isPreview = false,
     edit = true,
+    handleSubmit = () => {},
 }: {
     postData?: PostData;
     isPreview?: boolean;
     edit?: boolean;
+    handleSubmit?: (payload: any) => void;
 }) {
-    const [type, setType] = useState(postData?.type || postType[0]);
-
-    const [openTimeTaskEndBox, setOpenTimeTaskEndBox] = useState(false);
+    const [type, setType] = useState(
+        postData?.type ? postType.find((type) => type.submit === postData.type)!.name : postType[0].name,
+    );
     const [timeTaskEnd, setTimeTaskEnd] = useState<TimeData>(
         postData?.timeTaskEnd || {
-            date: `${currentDay.getDate()}/${currentDay.getMonth() + 1}/${currentDay.getFullYear()}`,
-            time: `${currentDay.getHours()}:${currentDay.getMinutes()}`,
+            date: `${currentDay.getDate() + 1}/${currentDay.getMonth() + 1}/${currentDay.getFullYear()}`,
+            time: `${currentDay.getHours()}:${currentDay.getMinutes() <= 9 ? '0' + currentDay.getMinutes() : currentDay.getMinutes()}`,
         },
     );
 
     const [title, setTitle] = useState(postData?.title || '');
 
     const [rawContentState, setRawContentState] = useState<RawDraftContentState | null>(
-        postData?.rawContentState || null,
+        postData?.content ? JSON.parse(postData.content) : null,
     );
 
     const [voteData, setVoteData] = useState<VoteData | null>(postData?.voteData || null);
 
-    const [files, setFiles] = useState<Array<FileType>>(postData?.files || []);
+    const [files, setFiles] = useState<Array<FileType>>(
+        postData?.files
+            ? postData.files.map((file) => ({
+                  name: file.name,
+                  extension:
+                      fileExtensions.find((extension) => extension.extension === file.extension)?.extension ||
+                      'unknown',
+                  color: fileExtensions.find((extension) => extension.extension === file.extension)?.color || 'black',
+                  path: file.path,
+              }))
+            : [],
+    );
+    const [filesBuffer, setFilesBuffer] = useState<Array<File>>([]);
 
     const [openTimeSetterModal, setOpenTimeSetterModal] = useState(false);
     const [timePost, setTimePost] = useState<TimeData>(
@@ -69,59 +85,96 @@ export default function PostCard({
     );
 
     const [buttonAction, setButtonAction] = useState({ label: buttonActionName[0], openOption: false });
+    const [error, setError] = useState('');
 
     const [isViewComment, setIsViewComment] = useState(false);
 
-    const fileRef = useRef(null);
-
     const handleAddFile = (file: File) => {
+        const url = URL.createObjectURL(file);
         const extension = file.type.split('/')[1];
         const type = fileExtensions.find((item) => item.extension === extension);
 
         const newFile = {
-            name: file.name,
-            path: file.webkitRelativePath,
             extension: type ? type.extension : 'unknown',
             color: type ? type.color : 'black',
+            name: file.name,
+            path: url,
         };
+
+        console.log(file);
 
         setFiles((prev) => {
             return [...prev, newFile];
         });
+
+        setFilesBuffer((prev) => [...prev, file]);
     };
 
     const handleRemoveFile = (removedIndex: number) => {
         const newFiles = files.filter((item, index) => index !== removedIndex);
+        const newFilesBuffer = filesBuffer.filter((item, index) => index !== removedIndex);
 
         setFiles(newFiles);
+        setFilesBuffer(newFilesBuffer);
     };
 
-    const handleSubmit = () => {
-        console.log({
-            type,
-            title: title || 'Không có tiêu đề',
-            timeTaskEnd,
-            timePost,
-            files,
-            rawContentState,
-            voteData,
-        });
+    const validInput = () => {
+        if (type === 'Bình chọn' && voteData) {
+            if (voteData.options.find((item) => item.value === '')) {
+                return false;
+            }
+        }
+
+        if (rawContentState === null && type !== 'Bình chọn') {
+            return false;
+        }
+
+        if (title === '') {
+            return false;
+        }
+
+        return true;
+    };
+
+    const handleCreatePost = () => {
+        if (!validInput()) {
+            setError('Vui lòng điền đầy đủ thông tin');
+        } else {
+            setError('');
+            console.log(filesBuffer);
+            handleSubmit({
+                type: postType.find((item) => item.name === type)!.submit,
+                title: title || 'Không có tiêu đề',
+                timeTaskEnd,
+                timePost,
+                files: filesBuffer,
+                content: JSON.stringify(rawContentState || ''),
+                voteData: type === 'Bình chọn' ? voteData : undefined,
+            });
+        }
     };
 
     const handleClickSubmitButton = () => {
-        if (buttonAction.label === 'Đặt hẹn') setOpenTimeSetterModal(true);
+        if (buttonAction.label === 'Đặt hẹn') {
+            setOpenTimeSetterModal(true);
+        }
 
-        handleSubmit();
+        handleCreatePost();
     };
 
     return (
         <>
             <div className={`w-[70%] ${isPreview ? 'cursor-pointer mb-[-32px]' : ''}`}>
+                {edit && error && (
+                    <div className="w-full bg-red-200 text-red-500 rounded-full px-[24px] py-[12px] mb-[8px]">
+                        {error}
+                    </div>
+                )}
                 <div className="bg-white shadow-custom-2 rounded-[16px] py-[12px] px-[16px]">
                     <div className={`flex items-center justify-between ${isPreview ? '' : 'mb-[16px]'}`}>
                         {edit ? (
                             <Selection
-                                optionData={postType}
+                                optionData={postType.map((item) => item.name)}
                                 label="Loại"
                                 onChange={(type) => setType(type)}
                                 className="bg-[var(--text-color)] text-white rounded-full"
@@ -136,44 +189,7 @@ export default function PostCard({
                         )}
 
                         {(type === 'Bài tập' || type === 'Bình chọn') && (
-                            <div className="relative">
-                                <motion.div
-                                    initial={{ marginBottom: 0 }}
-                                    animate={openTimeTaskEndBox ? { marginBottom: '4px' } : {}}
-                                    className={`font-bold ${openTimeTaskEndBox ? 'shadow-custom-4' : ''} text-[18px] px-[8px] py-[4px] rounded-lg cursor-pointer relative`}
-                                    onClick={() => {
-                                        if (edit) {
-                                            setOpenTimeTaskEndBox((prev) => !prev);
-                                        }
-                                    }}
-                                >
-                                    <span
-                                        className={`${checkTimeExprire(timeTaskEnd.time, timeTaskEnd.date) ? 'text-red-500' : ''}`}
-                                    >
-                                        <span className="mr-[4px]">
-                                            {checkTimeExprire(timeTaskEnd.time, timeTaskEnd.date)
-                                                ? 'Đã hết hạn: '
-                                                : 'Đến hạn: '}
-                                        </span>
-                                        <span>{timeTaskEnd.time}, </span>
-                                        <span>{timeTaskEnd.date}</span>
-                                    </span>
-                                </motion.div>
-
-                                {openTimeTaskEndBox && edit && (
-                                    <div className="absolute top-[130%] shadow-custom-1 rounded-lg z-[50] right-0 beofore:content-[''] before:w-[30px] before:border-x-[18px] before:border-y-[20px] before:border-x-transparent before:border-t-transparent before:border-b-white before:block before:absolute before:top-[-30px] before:left-[50%] before:translate-x-[-50%]">
-                                        <TimeSetterBox
-                                            label="Hết hạn lúc"
-                                            handleCloseBox={() => {
-                                                setOpenTimeTaskEndBox(false);
-                                            }}
-                                            onChange={setTimeTaskEnd}
-                                            date={timeTaskEnd.date}
-                                            time={timeTaskEnd.time}
-                                        />
-                                    </div>
-                                )}
-                            </div>
+                            <TimeTaskEnd edit={edit} timeTaskEnd={timeTaskEnd} setTimeTaskEnd={setTimeTaskEnd} />
                         )}
                     </div>
 
@@ -182,6 +198,7 @@ export default function PostCard({
                             <Input
                                 placeholder="Tiêu đề"
                                 value={title}
+                                rules={[requiredRule]}
                                 className=""
                                 onChange={(value) => {
                                     setTitle(value);
@@ -192,22 +209,18 @@ export default function PostCard({
                         !isPreview && <div className="text-[24px] font-bold pl-[8px]">{title}</div>
                     )}
 
-                    {(type !== 'Bình chọn' || edit || (!edit && rawContentState)) && !isPreview && (
+                    {type !== 'Bình chọn' && !isPreview && (
                         <TextEditor
                             className="mt-[12px]"
                             editable={edit}
-                            rawContentState={postData?.rawContentState || rawContentState}
+                            rawContentState={rawContentState}
                             onChange={setRawContentState}
                             label="Nội dung"
                         />
                     )}
 
                     {type === 'Bình chọn' && (
-                        <Vote
-                            edit={!postData?.voteData}
-                            voteData={postData?.voteData || voteData}
-                            onChange={setVoteData}
-                        />
+                        <Vote edit={!postData?.voteData} voteData={voteData} onChange={setVoteData} />
                     )}
                     {files.length > 0 && !isPreview && (
                         <div className="px-[12px] mt-[16px]">
@@ -216,7 +229,9 @@ export default function PostCard({
                                 {files.map((file, index) => (
                                     <div
                                         key={index}
-                                        style={{ borderColor: file.color }}
+                                        style={{
+                                            borderColor: file.color || 'black',
+                                        }}
                                         className={`border-2 w-[200px] h-[50px] px-[12px] flex items-center rounded-lg my-[12px]`}
                                     >
                                         <Image
@@ -226,7 +241,7 @@ export default function PostCard({
                                         />
                                         <a
                                             href={file.path}
-                                            download
+                                            target="_blank"
                                             title={file.name}
                                             className="flex items-center truncate h-full border-l-2 border-inherit px-[8px] grow"
                                         >
@@ -247,15 +262,17 @@ export default function PostCard({
                     )}
                     {edit && (
                         <div className="flex justify-between items-center mt-[24px]">
-                            <div className="mt-[12px] text-[20px]">
-                                <InputFile ref={fileRef} onChange={handleAddFile}>
-                                    <FontAwesomeIcon
-                                        className="cursor-pointer hover:bg-slate-200 py-[12px] px-[12px] rounded-full"
-                                        icon={faArrowUpFromBracket}
-                                    />
-                                </InputFile>
-                            </div>
-                            <div className="flex relative z-[20]">
+                            {type !== 'Bình chọn' && (
+                                <div className="mt-[12px] text-[20px]">
+                                    <InputFile onChange={handleAddFile} multiple>
+                                        <FontAwesomeIcon
+                                            className="cursor-pointer hover:bg-slate-200 py-[12px] px-[12px] rounded-full"
+                                            icon={faArrowUpFromBracket}
+                                        />
+                                    </InputFile>
+                                </div>
+                            )}
+                            <div className="flex relative z-[20] ml-auto">
                                 <Button
                                     handleClick={handleClickSubmitButton}
                                     className="rounded-none rounded-tl-lg rounded-bl-lg w-[80px]"
