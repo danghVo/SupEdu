@@ -5,12 +5,14 @@ import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { faBell, faComment, faCalendar, faCircleQuestion } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faChalkboard, faGear } from '@fortawesome/free-solid-svg-icons';
+import { faChalkboard, faGear, faRightFromBracket } from '@fortawesome/free-solid-svg-icons';
 
 import image from '~/assets/image';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import Announcenment from '../Annoucement';
+import useProfile from '~/hooks/useProfile';
+import { useQueryClient } from '@tanstack/react-query';
 
 const mainItem = [
     { name: 'Lớp học', to: '/class', icon: faChalkboard },
@@ -24,6 +26,14 @@ export default function SideBar() {
     const [open, setOpen] = useState(false);
     const [active, setActive] = useState(mainItem.findIndex((item) => pathName.includes(item.to)));
     const [openAnnounce, setOpenAnnounce] = useState(false);
+    const { data: user, isSuccess } = useProfile();
+    const router = useRouter();
+    const queryClient = useQueryClient();
+
+    const handleLogout = async () => {
+        window.localStorage.removeItem('token');
+        router.push('/SignIn');
+    };
 
     return (
         <div
@@ -89,7 +99,7 @@ export default function SideBar() {
                     <div className=" border-b-2 border-solid border-slate-100 mb-[16px] my-[32px]">
                         <div
                             className={`whitespace-nowrap flex ${
-                                !open ? 'justify-center' : 'px-[16px] mx-[6px]'
+                                !open ? 'justify-start' : 'px-[16px] mx-[6px]'
                             }  mb-[8px] text-[16px] w-full py-[12px] cursor-pointer`}
                         >
                             <FontAwesomeIcon icon={faGear} className="text-[20px]" />
@@ -97,24 +107,25 @@ export default function SideBar() {
                         </div>
                         <div
                             className={`whitespace-nowrap flex ${
-                                !open ? 'justify-center' : 'px-[16px] mx-[6px]'
+                                !open ? 'justify-start' : 'px-[16px] mx-[6px]'
                             }  mb-[8px] text-[16px] w-full py-[12px] cursor-pointer`}
+                            onClick={() => handleLogout()}
                         >
-                            <FontAwesomeIcon icon={faCircleQuestion} className="text-[20px]" />
-                            {open && <span className="ml-[8px] font-medium">Trợ giúp</span>}
+                            <FontAwesomeIcon icon={faRightFromBracket} className="text-[20px]" />
+                            {open && <span className="ml-[8px] font-medium">Đăng xuất</span>}
                         </div>
                     </div>
-                    <div className="mb-[32px] flex items-center justify-center">
+                    {/* <div className="mb-[32px] flex items-center justify-center">
                         <div className="w-[42px] h-[42px] flex items-center justify-center border-2 border-solid border-slate-400 rounded-full p-1 ">
                             <Image src={image.student} alt="logo" className="w-[28px] h-[28px]" />
-                        </div>
-                        {open && (
-                            <div className="ml-[12px]">
-                                <div className="font-bold"> Vo </div>
-                                <div> huynhvo47@gmail.com </div>
+                        </div> */}
+                    {/* {open && (
+                            <div className="ml-[12px] truncate max-w-full">
+                                <div className="font-bold"> {user.name} </div>
+                                <div> {user.email} </div>
                             </div>
-                        )}
-                    </div>
+                        )} */}
+                    {/* </div> */}
                 </div>
             </motion.div>
             <AnimatePresence>
