@@ -12,4 +12,8 @@ export class AuthService extends HTTP {
     async signUp(payload: object) {
         return await this.post('/auth/signup', payload);
     }
+
+    async resendVerifyMail(uuid: string) {
+        return await this.get(`/auth/resend-verify-mail/${uuid}`);
+    }
 }
