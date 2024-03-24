@@ -7,13 +7,12 @@ import { motion } from 'framer-motion';
 
 interface VoteItem {
     uuid?: String;
-    content: string;
-    percentage: number;
+    value: string;
+    percent: number;
 }
 
 export interface VoteData {
     uuid?: string;
-    title: string;
     options: Array<VoteItem>;
 }
 
@@ -26,10 +25,9 @@ export default function Vote({
     voteData: VoteData | null;
     onChange: (voteDate: VoteData) => void;
 }) {
-    const [title, setTitle] = useState('');
     const [options, setOptions] = useState<Array<VoteItem>>([
-        { content: '', percentage: 0 },
-        { content: '', percentage: 0 },
+        { value: '', percent: 0 },
+        { value: '', percent: 0 },
     ]);
     const [selection, setSelection] = useState<string | null>(null);
     const [error, setError] = useState('');
@@ -37,37 +35,35 @@ export default function Vote({
     useEffect(() => {
         if (voteData) {
             setOptions(voteData.options);
-            setTitle(voteData.title);
         }
     }, []);
 
     useEffect(() => {
         if (!error) {
             onChange({
-                title,
                 options,
             });
         }
-    }, [title, options]);
+    }, [options]);
 
     useEffect(() => {});
 
     const handleChangeOption = (e: any, index: number) => {
         const value = e.target.value;
 
-        if (options.find((item) => item.content === value)) {
+        if (options.find((item) => item.value === value)) {
             setError('Không được có lựa chọn trùng nhau');
         } else if (error) {
             setError('');
         }
 
-        options[index].content = value;
+        options[index].value = value;
 
         setOptions([...options]);
     };
 
     const hanldeAddNewOption = () => {
-        setOptions((prev) => [...prev, { content: '', percentage: 0 }]);
+        setOptions((prev) => [...prev, { value: '', percent: 0 }]);
     };
 
     const handleRemoveOption = (removedIndex: number) => {
@@ -89,8 +85,7 @@ export default function Vote({
     };
 
     const handleClear = () => {
-        setTitle('');
-        setOptions(Array(2).fill({ value: '', percentage: 0 }));
+        setOptions(Array(2).fill({ value: '', percent: 0 }));
     };
 
     const handleRemoveSelection = () => {
@@ -106,17 +101,8 @@ export default function Vote({
                     <FontAwesomeIcon icon={faXmark} onClick={() => setError('')} className="mr-[16px] cursor-pointer" />
                 </div>
             )}
-            {edit ? (
-                <input
-                    placeholder="Tiêu đề"
-                    className="outline-none w-full px-[16px] py-[8px] rounded-full shadow-custom-4"
-                    value={title}
-                    onChange={(e) => setTitle(e.target.value)}
-                />
-            ) : (
+            {!edit && (
                 <div className="flex items-center justify-between">
-                    <div className="text-[18px] font-bold">{title}</div>
-
                     {selection && (
                         <div
                             className="underline mr-[16px] font-semibold cursor-pointer"
@@ -134,15 +120,15 @@ export default function Vote({
                             className={`px-[12px] my-[16px] shadow-custom-4 rounded-full overflow-hidden flex items-center`}
                             initial={{ border: '0px solid transparent' }}
                             animate={
-                                selection === option.content && !edit
+                                selection === option.value && !edit
                                     ? { border: '2px solid green' }
                                     : { border: '0px solid transparent' }
                             }
-                            onClick={() => handleChooseOption(option.content)}
+                            onClick={() => handleChooseOption(option.value)}
                         >
                             <div
                                 className={`cursor-pointer h-[16px] flex items-center ${
-                                    selection === option.content && !edit
+                                    selection === option.value && !edit
                                         ? 'relative before:content-[""] before:block before:absolute before:top-0 before:w-full before:h-full before:bg-green-500 before:rounded-full'
                                         : ''
                                 }`}
@@ -152,7 +138,7 @@ export default function Vote({
                             <input
                                 className={`px-[8px] py-[8px] w-full outline-none ${!edit ? 'cursor-pointer' : ''}`}
                                 placeholder={`Lựa chọn ${index + 1}`}
-                                value={option.content}
+                                value={option.value}
                                 readOnly={!edit}
                                 onChange={(e) => handleChangeOption(e, index)}
                             />
@@ -168,11 +154,11 @@ export default function Vote({
                         {selection && !edit && (
                             <div className="flex items-center gap-[16px] px-[8px]">
                                 <motion.div
-                                    className={`h-[20px] ${selection === option.content ? 'bg-green-500' : 'bg-black'} rounded-full`}
+                                    className={`h-[20px] ${selection === option.value ? 'bg-green-500' : 'bg-black'} rounded-full`}
                                     initial={{ width: 0 }}
-                                    animate={{ width: option.percentage + '%' }}
+                                    animate={{ width: option.percent + '%' }}
                                 ></motion.div>
-                                <span className="font-semibold">{option.percentage}%</span>
+                                <span className="font-semibold">{option.percent}%</span>
                             </div>
                         )}
                     </div>
