@@ -29,11 +29,10 @@ export default function Header() {
 
     return (
         <div
-            className={`h-[70px] w-full fixed z-50 top-0 backdrop-blur-sm right-0 flex px-24 items-center transition-colors ease-linear duration-200`}
+            className={`h-[70px] w-full fixed z-50 top-0 backdrop-blur-sm right-0 flex px-24 items-center justify-between transition-colors ease-linear duration-200`}
             style={{ backgroundColor: bgColor }}
         >
             <Image src={image.logo} width={100} height={100} alt="SupEdu" />
-            <Nav />
 
             <div className="flex gap-4">
                 <Link href={'/SignIn'}>
