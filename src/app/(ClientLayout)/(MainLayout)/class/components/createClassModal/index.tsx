@@ -22,7 +22,13 @@ export interface FormData {
     background: File | null;
 }
 
-export default function CreateClassModal({ handleCloseModal }: { handleCloseModal: () => void }) {
+export default function CreateClassModal({
+    handleCloseModal,
+    refetchClass,
+}: {
+    handleCloseModal: () => void;
+    refetchClass: (filter: string) => void;
+}) {
     const [openColorPicker, setOpenColorPicker] = useState({
         from: false,
         to: false,
@@ -40,17 +46,23 @@ export default function CreateClassModal({ handleCloseModal }: { handleCloseModa
     });
     const queryClient = useQueryClient();
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         const user: { uuid: string } | undefined = queryClient.getQueryData(['user']);
 
         const theme = `from-[${formData.theme.from}] to-[${formData.theme.to}]`;
 
         if (user) {
             const classController = new ClassController();
-            const data = queryClient.fetchQuery({
+            const data = await queryClient.fetchQuery({
                 queryKey: ['create class'],
                 queryFn: () => classController.createClass(formData, user.uuid),
             });
+
+            if (!data.error) {
+                refetchClass('Sở hữu');
+
+                handleCloseModal();
+            }
         }
     };
 
