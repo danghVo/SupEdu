@@ -25,6 +25,14 @@ export class UserController {
         return res.data;
     }
 
+    async resendVerifyMail(uuid: string) {
+        const auth = new AuthService();
+
+        const res = await auth.resendVerifyMail(uuid);
+
+        return res.data;
+    }
+
     async profile() {
         const user = new UserService();
 
