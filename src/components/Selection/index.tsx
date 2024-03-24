@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 
 export default function Selection({
@@ -19,8 +19,11 @@ export default function Selection({
     const [selection, setSelection] = useState(defaultSelection || optionData[0]);
     const [openOption, setOpenOption] = useState(false);
 
-    const handleChooseSelection = (event: React.MouseEvent, selection: string) => {
+    useEffect(() => {
         onChange(selection);
+    }, [selection]);
+
+    const handleChooseSelection = (event: React.MouseEvent, selection: string) => {
         event.stopPropagation();
         setSelection(selection);
         setOpenOption(false);
