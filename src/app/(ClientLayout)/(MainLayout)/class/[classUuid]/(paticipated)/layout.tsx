@@ -1,53 +1,33 @@
+'use client';
+
 import { redirect } from 'next/navigation';
 import Main from './components/Main';
 import RightSideBar from './components/RightSideBar';
-
-// const data = {
-//     id: 0,
-//     name: 'Lớp A',
-//     teacher: {
-//         name: 'Man A',
-//         avartar: '',
-//     },
-//     description: 'Class Of A',
-//     background: {
-//         from: 'from-[#0c7076]',
-//         to: 'to-[#9d0020]',
-//     },
-//     isLive: true,
-//     exercises: [
-//         {
-//             name: 'Task A',
-//             isDone: true,
-//         },
-//         {
-//             name: 'Task B',
-//             isDone: false,
-//         },
-//         {
-//             name: 'Task B',
-//             isDone: false,
-//         },
-//     ],
-// };
-
-let role = '';
+import useClass from '~/hooks/useClass';
+import useProfile from '~/hooks/useProfile';
 
 export default function Layout({
     children,
-    params: { classId },
+    params: { classUuid },
 }: {
     children: React.ReactNode;
-    params: { classId: string };
+    params: { classUuid: string };
 }) {
+    const { data: classData, isSuccess: isClassSuccess } = useClass(classUuid);
+    const { data: user, isSuccess: isUserSuccess } = useProfile();
+
     return (
         <div className="flex h-screen">
-            {role === 'nonparticipating' ? (
-                redirect(`/class/${classId}`)
-            ) : (
+            {isClassSuccess && isUserSuccess && (
                 <>
-                    <Main classId={classId}>{children}</Main>
-                    <RightSideBar />
+                    {classData.status === 'JOINED' || classData.owner.uuid === user.uuid ? (
+                        <>
+                            <Main classUuid={classUuid}>{children}</Main>
+                            <RightSideBar />
+                        </>
+                    ) : (
+                        redirect(`/class/${classUuid}`)
+                    )}
                 </>
             )}
         </div>
