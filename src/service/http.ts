@@ -23,14 +23,54 @@ export class HTTP {
                 body = new FormData();
 
                 for (const key in payload) {
-                    body.append(key, payload[key]);
+                    if (payload[key] === undefined || payload[key] === null) continue;
+                    let value;
+                    if (key === 'file') {
+                        value = payload[key];
+                    } else if (key === 'files') {
+                        for (let i = 0; i < payload[key].length; i++) {
+                            body.append('files', payload[key][i]);
+                        }
+                        continue;
+                    } else value = typeof payload[key] !== 'string' ? JSON.stringify(payload[key]) : payload[key];
+
+                    body.append(key, value);
                 }
             } else body = JSON.stringify(payload);
+
+            const contentType = !isSendFile ? { 'Content-Type': 'application/json' } : undefined;
+
+            const result = await fetch(this.baseUrl + url, {
+                method: 'POST',
+                headers: {
+                    ...contentType,
+                    Authorization: this.accessToken ? `Bearer ${this.accessToken}` : '',
+                },
+                body,
+                ...option,
+            });
+
+            return await result.json();
+        } catch (error) {}
+    }
+
+    async patch(url: string, payload?: any, option?: object, isSendFile?: boolean) {
+        try {
+            let body;
+            if (isSendFile) {
+                body = new FormData();
+
+                for (const key in payload) {
+                    const value = typeof payload[key] !== 'string' ? JSON.stringify(payload[key]) : payload[key];
+                    body.append(key, value);
+                }
+            } else body = JSON.stringify(payload);
+            console.log(body);
 
             const contentType = isSendFile ? 'multipart/form-data' : 'application/json';
 
             const result = await fetch(this.baseUrl + url, {
-                method: 'POST',
+                method: 'PATCH',
                 headers: {
                     'Content-Type': contentType,
                     Authorization: this.accessToken ? `Bearer ${this.accessToken}` : '',
@@ -43,15 +83,17 @@ export class HTTP {
         } catch (error) {}
     }
 
-    // async patch(url: string, payload?: object, option?: object) {
-    //     const result = await this.instance.post(url, payload, option);
+    async delete(url: string, option?: object) {
+        try {
+            const result = await fetch(this.baseUrl + url, {
+                method: 'DELETE',
+                headers: {
+                    Authorization: this.accessToken ? `Bearer ${this.accessToken}` : '',
+                },
+                ...option,
+            });
 
-    //     return result.data;
-    // }
-
-    // async delete(url: string, option?: object) {
-    //     const result = await this.instance.post(url, option);
-
-    //     return result.data;
-    // }
+            return result.json();
+        } catch (error) {}
+    }
 }
