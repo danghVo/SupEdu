@@ -25,6 +25,7 @@ export interface InputProps {
     onBlur?: (e: React.FormEvent<EventTarget>) => void;
     accept?: string;
     type?: string;
+    multiple?: boolean;
 }
 
 const iconStatusName = {
@@ -55,6 +56,7 @@ function Input(
         onFocus = (e) => {},
         onBlur = (e) => {},
         accept,
+        multiple = false,
         type = 'stack',
     }: InputProps,
     forwardRef: Ref<HTMLInputElement> | undefined,
@@ -106,6 +108,7 @@ function Input(
                             id={label}
                             type={inputType}
                             accept={accept}
+                            multiple={multiple}
                             className={`w-full ${statusIcon.name ? 'pl-[16px]' : 'pl-[18px]'}  pr-2 py-6 outline-none ${className}`}
                             onKeyUp={handleKeyUp}
                             value={value}

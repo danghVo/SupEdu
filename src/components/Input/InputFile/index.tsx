@@ -12,10 +12,11 @@ interface InputFileProps {
     file?: string;
     isRequire?: boolean;
     accept?: string;
+    multiple?: boolean;
     onChange: (files: File) => void;
 }
 
-function InputFile({ children, label, file, isRequire = false, onChange, accept }: InputFileProps) {
+function InputFile({ children, label, file, isRequire = false, onChange, accept, multiple = false }: InputFileProps) {
     const [addFile, setAddFile] = useState('');
 
     useEffect(() => {
@@ -26,13 +27,13 @@ function InputFile({ children, label, file, isRequire = false, onChange, accept 
 
     const handleFile = (e: ChangeEvent<HTMLInputElement>) => {
         const fileList = e.target.files;
-        const newFile = fileList?.item(fileList.length - 1);
+        if (fileList) {
+            const newFile = fileList[0];
 
-        console.log(newFile);
-
-        if (newFile) {
-            onChange(newFile);
-            setAddFile(newFile.name);
+            if (newFile) {
+                onChange(newFile);
+                setAddFile(newFile.name);
+            }
         }
     };
 
@@ -56,6 +57,7 @@ function InputFile({ children, label, file, isRequire = false, onChange, accept 
             {isRequire && !file && <div className={cs('required')}>Không được để trống</div>}
             <div className="hidden">
                 <Input
+                    multiple={multiple}
                     value=""
                     inputType="file"
                     accept={accept || '*'}
