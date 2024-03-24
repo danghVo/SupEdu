@@ -36,7 +36,7 @@ export default function Layout(props: {
 
     const handleBackward = (formIndex?: number) => {
         if (currentForm > 0) {
-            setCurrentForm(formIndex ? formIndex : (prev) => prev - 1);
+            setCurrentForm(typeof formIndex === 'number' ? formIndex : (prev) => prev - 1);
             setFormAnimation({
                 initital: { x: -100, opacity: 1 },
                 animate: { x: 0, opacity: 1 },
@@ -46,7 +46,7 @@ export default function Layout(props: {
 
     const handleForward = (formIndex?: number) => {
         if (currentForm < 2) {
-            setCurrentForm(formIndex ? formIndex : (prev) => prev + 1);
+            setCurrentForm(typeof formIndex === 'number' ? formIndex : (prev) => prev + 1);
             setFormAnimation({
                 initital: { x: 100, opacity: 1 },
                 animate: { x: 0, opacity: 1 },
