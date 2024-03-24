@@ -20,8 +20,9 @@ export default function Page() {
     const { onBackward, onForward, formData, onChange }: SignUpFormProps = useContext(FormController);
     const queryClient = useQueryClient(new QueryClient());
     const [error, setError] = useState('');
-    const [waitingRecevieVerify, setWaitingRecevieVerify] = useState(true);
+    const [waitingRecevieVerify, setWaitingRecevieVerify] = useState(false);
     const [isSuccess, setIsSuccess] = useState<null | boolean>(null);
+    const [currentUuid, setCurrnetUuid] = useState<string>('');
     const router = useRouter();
 
     const handleSubmit = async () => {
@@ -35,8 +36,17 @@ export default function Page() {
         if (data.error) {
             setError(data.error);
         } else {
+            setCurrnetUuid(data.uuid);
             setWaitingRecevieVerify(true);
-            const socket = io('localhost:4000');
+            const socket = io('http://localhost:4000');
+            socket.on('connect', () => {
+                socket.on('verify', (payload) => {
+                    if (payload.status === 'success') {
+                        socket.disconnect();
+                        handleSuccess();
+                    }
+                });
+            });
 
             setTimeout(
                 () => {
@@ -46,60 +56,71 @@ export default function Page() {
                 },
                 1000 * 60 * 5,
             );
+        }
+    };
 
-            socket.on('verify', (status) => {
-                if (status === 'success') {
-                    socket.disconnect();
-                    handleSuccess();
-                } else if (status == 'fail') {
-                    socket.disconnect();
-                    setError('Đã có lỗi xảy ra, vui lòng thử lại sau');
-                    handleFail();
-                }
-            });
+    const handleResendVerifyMail = async () => {
+        const userController = new UserController();
+
+        const data = await queryClient.fetchQuery({
+            queryKey: [currentUuid],
+            queryFn: () => userController.resendVerifyMail(currentUuid),
+        });
+
+        if (data.error) {
+            setError(data.error);
+            handleFail();
         }
     };
 
     const handleSuccess = () => {
         setIsSuccess(true);
-        setTimeout(() => {
-            setWaitingRecevieVerify(false);
-            router.push('/SignIn');
-        }, 5000);
     };
 
     const handleFail = () => {
         setIsSuccess(false);
-        setTimeout(() => {
-            setWaitingRecevieVerify(false);
-            router.push('/SignIn');
-        }, 5000);
     };
 
     return waitingRecevieVerify ? (
         <motion.div className="h-[400px] flex flex-col justify-center items-center">
             {typeof isSuccess === 'boolean' ? (
                 <>
-                    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+                    <motion.div key={'Done'} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
                         <FontAwesomeIcon
+                            style={{ height: 100 }}
                             icon={isSuccess ? faCircleCheck : faCircleXmark}
-                            className={`${isSuccess ? 'text-green-500' : 'text-red-500'} h-[100px]`}
+                            className={`${isSuccess ? 'text-green-500' : 'text-red-500'}`}
                         />
                     </motion.div>
                     <div className="mt-[24px] text-[20px] font-semibold">
                         {isSuccess ? 'Đăng ký thành công' : error}
                     </div>
+                    {!isSuccess && (
+                        <div
+                            className="mt-[12px] text-[20px] font-semibold underline cursor-pointer"
+                            onClick={() => onBackward(0)}
+                        >
+                            Đăng ký lại
+                        </div>
+                    )}
                 </>
             ) : (
                 <>
                     <motion.div
+                        key={'Loading'}
                         initial={{ rotate: 0 }}
                         animate={{ rotate: 360 }}
                         transition={{ repeat: Infinity, duration: 1, type: 'tween', ease: 'linear' }}
                     >
-                        <FontAwesomeIcon icon={faCircleNotch} className="h-[100px]" />
+                        <FontAwesomeIcon icon={faCircleNotch} style={{ height: 100 }} />
                     </motion.div>
                     <div className="mt-[24px] text-[20px] font-semibold">Hãy xác nhận mail của bạn</div>
+                    <div className="mt-[24px] text-[20px] font-semibold">
+                        Chưa nhận được mail ?{' '}
+                        <span onClick={handleResendVerifyMail} className="underline cursor-pointer font-bold">
+                            Gửi lại
+                        </span>
+                    </div>
                 </>
             )}
         </motion.div>
