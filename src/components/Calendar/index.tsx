@@ -24,7 +24,8 @@ export default function Calendar({
         year: today.getFullYear(),
     });
     const [dateSelected, setDaySelected] = useState<string | null>(
-        value ? value.slice(0, value.length - 5) : `${today.getDate()}/${today.getMonth() + 1}`,
+        value ||
+            `${today.getDate() < 10 ? '0' + today.getDate() : today.getDate()}/${today.getMonth() < 9 ? `0${today.getMonth() + 1}` : today.getMonth() + 1}/${today.getFullYear()}`,
     );
 
     useEffect(() => {
@@ -42,7 +43,7 @@ export default function Calendar({
     useEffect(() => {
         if (handleClickDay) {
             if (dateSelected) {
-                handleClickDay(dateSelected + `/${currentDate.year}`);
+                handleClickDay(dateSelected);
             } else handleClickDay(null);
         }
     }, [dateSelected]);
@@ -68,20 +69,31 @@ export default function Calendar({
         setDaySelected(null);
     };
 
-    const hanldeChooseDay = (date: number, month: number) => {
+    const hanldeChooseDay = (date: number, month: number, year: number) => {
+        if (year !== currentDate.year) {
+            setCurrentDate((prev) => ({
+                ...prev,
+                year,
+            }));
+        }
+
         if (month !== currentDate.month) {
             setCurrentDate((prev) => ({
                 ...prev,
                 month,
             }));
         }
-        setDaySelected(`${date}/${month + 1}`);
+
+        const dateConvert = date < 10 ? `0${date}` : date;
+        const monthConvert = month + 1 < 9 ? `0${month + 1}` : month + 1;
+
+        setDaySelected(`${dateConvert}/${monthConvert}/${year}`);
     };
 
     const markedDate = (fullDateString: string) => {
         if (markedDays) {
             if (markedDays.includes(fullDateString)) {
-                return Date.parse(fullDateString) > Date.now() ? 'bg-slate-400 text-white' : 'bg-slate-800 text-white';
+                return Date.parse(fullDateString) > Date.now() ? 'bg-red-500 text-white' : 'bg-red-500 text-white';
             }
         } else return '';
     };
@@ -111,19 +123,20 @@ export default function Calendar({
                         <div className="flex flex-col justify-between gap-x-[4px] gap-y-[8px] items-center">
                             {daysOfMonth[index].dates.map((dateItem) => (
                                 <div
-                                    onClick={() => hanldeChooseDay(dateItem.date, dateItem.month)}
+                                    onClick={() => hanldeChooseDay(dateItem.date, dateItem.month, dateItem.year)}
                                     key={dateItem.date}
                                     className={`font-normal text-[14px] flex items-center justify-center w-[25px] h-[25px] px-[8px] py-[0px] cursor-pointer rounded-full relative ${
                                         today.getDate() === dateItem.date &&
                                         today.getMonth() === dateItem.month &&
-                                        today.getFullYear() === currentDate.year
+                                        today.getFullYear() === dateItem.year
                                             ? 'bg-black text-white rounded-full'
                                             : ''
-                                    } ${currentDate.month === dateItem.month ? '' : 'text-slate-200'} ${markedDate(
-                                        `${dateItem.date}/${dateItem.month + 1}/${currentDate.year}`,
+                                    } ${currentDate.month === dateItem.month && currentDate.year === dateItem.year ? '' : 'text-slate-200'} ${markedDate(
+                                        `${dateItem.date < 10 ? '0' + dateItem.date : dateItem.date}/${dateItem.month < 9 ? `0${dateItem.month + 1}` : dateItem.month + 1}/${dateItem.year}`,
                                     )}`}
                                 >
-                                    {dateSelected === `${dateItem.date}/${dateItem.month + 1}` && (
+                                    {dateSelected ===
+                                        `${dateItem.date < 10 ? '0' + dateItem.date : dateItem.date}/${dateItem.month < 9 ? `0${dateItem.month + 1}` : dateItem.month + 1}/${dateItem.year}` && (
                                         <div
                                             className={`w-[100%] h-[100%] border-[3px] border-white absolute outline outline-slate-400 top-0 bottom-0 right-0 left-0 rounded-full`}
                                         ></div>
