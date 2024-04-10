@@ -14,7 +14,7 @@ interface ButtonProps extends React.ComponentPropsWithoutRef<'button'> {
     theme?: string;
     icon?: React.ReactNode;
     disabled?: boolean;
-    handleClick: () => void;
+    handleClick: (e?: any) => void;
 }
 
 export default function Button({
@@ -39,7 +39,7 @@ export default function Button({
 
     return (
         <button
-            className={`flex items-center justify-center font-medium px-[8px] py-[12px] gap-[8px] rounded-[25px] ${className} ${cs(size, theme)} ${disabled ? 'opacity-80' : ''}`}
+            className={`flex items-center justify-center font-medium px-[8px] py-[12px] gap-[8px] rounded-[25px] ${className} ${cs(size, theme)} ${disabled ? 'opacity-80 cursor-not-allowed' : ''}`}
             onClick={handleClickButton}
         >
             <span className="">{children}</span>
