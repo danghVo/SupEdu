@@ -1,19 +1,24 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import React, { MouseEvent, useEffect, useRef, useState } from 'react';
+import React, { MouseEvent, useContext, useEffect, useRef, useState } from 'react';
 import { classDetailSections } from '~/constant';
-import SimpleBarReact from 'simplebar-react';
-import Link from 'next/link';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCaretLeft, faCheck, faGear, faPen } from '@fortawesome/free-solid-svg-icons';
+import { faCaretLeft, faPen } from '@fortawesome/free-solid-svg-icons';
 import { usePathname } from 'next/navigation';
 import { useRouter } from 'next/navigation';
-import Input from '~/components/Input';
-import Button from '~/components/Button';
+import { useQueryClient } from '@tanstack/react-query';
+import Link from 'next/link';
+
 import useClass from '~/hooks/useClass';
-import useProfile from '~/hooks/useProfile';
-import Loading from '~/components/Loading/intex';
+import { NotificationTheme } from '~/app/(ClientLayout)/(MainLayout)/layout';
+import { NotificationType } from '~/components/Notification';
+import SimpleBarReact from 'simplebar-react';
+import EditClassModal, { FormData } from '../../../../components/editClassModal';
+import Loading from '~/components/Loading';
+import ConfirmModal from '~/components/Modal/ConfirmModal';
+import Button from '~/components/Button';
+import { ClassController } from '~/controller';
 
 export default function Main({ classUuid, children }: { classUuid: string; children: React.ReactNode }) {
     const pathName = usePathname();
@@ -22,11 +27,12 @@ export default function Main({ classUuid, children }: { classUuid: string; child
             classDetailSections[0],
     );
     const [sectionAnimation, setSectionAnimation] = useState({ x: 0 });
-    const [editClassName, setEditClassName] = useState(false);
-    const [className, setClassName] = useState('Lớp A');
+    const { data: classData, isSuccess: isClassSuccess, refetch } = useClass(classUuid);
+    const [openConfirmModal, setOpenConfirmModal] = useState(false);
+    const [openEditModal, setOpenEditModal] = useState(false);
     const router = useRouter();
-    const { data: classData, isSuccess: isClassSuccess } = useClass(classUuid);
-    const { data: user, isSuccess: isUserSuccess } = useProfile();
+    const queryClient = useQueryClient();
+    const notificationShow = useContext(NotificationTheme);
 
     const wrapperRef = useRef<HTMLDivElement | null>(null);
 
@@ -56,87 +62,140 @@ export default function Main({ classUuid, children }: { classUuid: string; child
         }
     };
 
-    const handleSubmitClassName = () => {
+    const handleUpdateClass = async (formData: FormData) => {
         // submit change class name
+        const classController = new ClassController();
 
-        setEditClassName(false);
+        const res = await queryClient.fetchQuery({
+            queryKey: ['update', classUuid],
+            queryFn: () => classController.updateClass(classUuid, formData),
+        });
+
+        if (!res.error) {
+            refetch();
+            setOpenEditModal(false);
+            notificationShow('Cập nhật thành công', NotificationType.success);
+        } else {
+            notificationShow(res.error, NotificationType.error);
+        }
     };
 
-    return isClassSuccess && isUserSuccess ? (
-        <SimpleBarReact
-            style={{ maxHeight: '100vh' }}
-            classNames={{ track: 'simplebar-track mr-2' }}
-            forceVisible="y"
-            className="grow relative z-[800]"
-        >
-            <div className="min-h-screen flex-col flex p-[32px] pt-[32px]" ref={wrapperRef}>
-                <div className="flex justify-between items-center mb-[28px]">
-                    <div className="font-bold flex items-center justify-between text-[32px]">
-                        <div onClick={() => router.push('/class')} className="cursor-pointer mr-[12px]">
-                            <FontAwesomeIcon icon={faCaretLeft} />
-                        </div>
-                        {classData.owner.uuid === user.uuid ? (
-                            <>
-                                {editClassName ? (
-                                    <>
-                                        <Input classNameWrapper="w-[200px]" value={className} onChange={setClassName} />
-                                        <div
-                                            onClick={handleSubmitClassName}
-                                            className="text-[24px] ml-[16px] cursor-pointer"
-                                        >
-                                            <FontAwesomeIcon icon={faCheck} />
-                                        </div>
-                                    </>
-                                ) : (
-                                    <>
-                                        <span>{classData.name}</span>
-                                        <div
-                                            onClick={() => {
-                                                setEditClassName(true);
-                                            }}
-                                            className="text-[24px] ml-[16px] cursor-pointer"
-                                        >
-                                            <FontAwesomeIcon icon={faPen} />
-                                        </div>
-                                    </>
-                                )}
-                            </>
-                        ) : (
-                            <div>{classData.name}</div>
-                        )}
-                    </div>
-                    <div className="mr-[64px]">
-                        <Button className="rounded-lg bg-red-700 text-white w-[100px]" theme="" handleClick={() => {}}>
-                            {user.role === 'TEACHER' ? 'Xóa' : 'Thoát'}
-                        </Button>
-                    </div>
-                </div>
-                <div className="flex items-center gap-[32px] mb-[12px] ml-[8px]">
-                    {classDetailSections.map((section, index) => (
-                        <Link
-                            key={index}
-                            href={`/class/${classUuid}/` + section.path}
-                            onClick={(event) => handleChangeSection(event, section.name)}
-                            className={`text-[18px] font-semibold cursor-pointer px-[12px] py-[8px] relative ${
-                                section.name === currentSection.name ? 'text-white' : ''
-                            }`}
-                        >
-                            {currentSection.name === section.name && (
-                                <motion.div
-                                    id="section-animation"
-                                    initial={sectionAnimation}
-                                    animate={{ x: 0 }}
-                                    className="bg-[var(--text-color)] absolute top-0 left-0 h-full w-full rounded-full"
-                                ></motion.div>
-                            )}
-                            <span className="relative z-20">{section.name}</span>
-                        </Link>
-                    ))}
-                </div>
+    const handleLeaveClass = async () => {
+        const classController = new ClassController();
 
-                <div className="grow mt-[28px] relative">{children}</div>
-            </div>
-        </SimpleBarReact>
+        const res = await classController.leaveClass(classUuid);
+
+        if (!res.error) {
+            router.push('/class');
+            queryClient.removeQueries({ queryKey: ['class', classUuid] });
+            notificationShow('Rời lớp thành công', NotificationType.success);
+        } else notificationShow('Rời lớp thất bại', NotificationType.error);
+    };
+
+    const handleDeleteClass = async () => {
+        const classController = new ClassController();
+
+        const res = await classController.deleteClass(classUuid);
+
+        if (!res.error) {
+            queryClient.removeQueries({ queryKey: ['class', classUuid] });
+            router.push('/class');
+            notificationShow('Xóa lớp thành công', NotificationType.success);
+        }
+    };
+
+    return isClassSuccess ? (
+        <>
+            <SimpleBarReact
+                style={{
+                    maxHeight: '100vh',
+                    backgroundImage: `linear-gradient(to bottom, ${classData.theme.from}, ${classData.theme.to})`,
+                }}
+                classNames={{ track: 'simplebar-track mr-2' }}
+                forceVisible="y"
+                className="grow z-[800]"
+            >
+                <div className="min-h-screen flex-col flex p-[32px] pt-[32px]" ref={wrapperRef}>
+                    <div style={{ color: classData.textColor }}>
+                        <div className="flex justify-between items-center mb-[28px]">
+                            <div className="font-bold flex items-center justify-between text-[32px]">
+                                <div
+                                    onClick={() => {
+                                        router.push('/class');
+                                        queryClient.removeQueries({ queryKey: ['class', classUuid] });
+                                    }}
+                                    className="cursor-pointer mr-[12px]"
+                                >
+                                    <FontAwesomeIcon icon={faCaretLeft} />
+                                </div>
+                                <div>{classData.name}</div>
+                                {classData.isOwner && (
+                                    <div
+                                        onClick={() => setOpenEditModal(true)}
+                                        className="text-[24px] ml-[16px] cursor-pointer"
+                                    >
+                                        <FontAwesomeIcon icon={faPen} />
+                                    </div>
+                                )}
+                            </div>
+                            <div className="mr-[64px]">
+                                <Button
+                                    className="rounded-lg bg-red-700 text-white w-[100px] shadow-custom-1"
+                                    theme=""
+                                    handleClick={() => setOpenConfirmModal(true)}
+                                >
+                                    {classData.isOwner ? 'Xóa' : 'Thoát'}
+                                </Button>
+                            </div>
+                        </div>
+                        <div className="flex items-center gap-[32px] mb-[12px] ml-[8px]">
+                            {classDetailSections.map((section, index) => (
+                                <Link
+                                    key={index}
+                                    href={`/class/${classUuid}/` + section.path}
+                                    onClick={(event) => handleChangeSection(event, section.name)}
+                                    className={`text-[18px] font-semibold cursor-pointer px-[12px] py-[8px] relative ${
+                                        section.name === currentSection.name ? 'text-white' : ''
+                                    }`}
+                                >
+                                    {currentSection.name === section.name && (
+                                        <motion.div
+                                            id="section-animation"
+                                            initial={sectionAnimation}
+                                            animate={{ x: 0 }}
+                                            className="bg-[var(--text-color)] absolute top-0 left-0 h-full w-full rounded-full"
+                                        ></motion.div>
+                                    )}
+                                    <span className="relative z-20">{section.name}</span>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+
+                    <div className="grow mt-[28px] relative">{children}</div>
+                </div>
+            </SimpleBarReact>
+
+            {openConfirmModal && (
+                <ConfirmModal
+                    title={
+                        !classData.isOwner
+                            ? 'Bạn có chắc chắn muốn rời lớp không ?'
+                            : 'Bạn có chắn chắn muốn xóa lớp này không ?'
+                    }
+                    handleCloseModal={() => setOpenConfirmModal(false)}
+                    handleYes={classData.isOwner ? handleDeleteClass : handleLeaveClass}
+                />
+            )}
+
+            {openEditModal && (
+                <EditClassModal
+                    initFormData={classData}
+                    handleSubmit={handleUpdateClass}
+                    handleCloseModal={() => setOpenEditModal(false)}
+                />
+            )}
+        </>
     ) : (
         <Loading />
     );
