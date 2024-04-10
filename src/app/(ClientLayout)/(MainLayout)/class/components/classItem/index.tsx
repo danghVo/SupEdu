@@ -1,15 +1,13 @@
 import { faCircle } from '@fortawesome/free-regular-svg-icons';
 import { faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { StaticImport } from 'next/dist/shared/lib/get-img-props';
 import Image from 'next/image';
 import { useMemo, useState } from 'react';
-import { AnimatePresence, PanInfo, motion, useDragControls } from 'framer-motion';
+import { AnimatePresence, motion } from 'framer-motion';
 
 import SimpleBarReact from 'simplebar-react';
 import 'simplebar-react/dist/simplebar.min.css';
 import images from '~/assets/image';
-// import { coordinateItem, dragMode } from '../../page';
 
 export interface classItem {
     id: number;
@@ -19,8 +17,10 @@ export interface classItem {
         avatar: string;
     };
     description: string;
-    background: string | null;
-    theme: string;
+    theme: {
+        from: string;
+        to: string;
+    };
     exercises: Array<{ name: string; isDone: boolean }>;
 }
 
@@ -41,30 +41,23 @@ export default function ClassItem({ classItem }: { classItem: classItem }) {
     return (
         <motion.div
             key={classItem.id}
-            className={`w-full h-fit shadow-custom-2 bg-main rounded-[25px] relativehover:translate-y-[4px]`}
+            className={`w-full h-fit shadow-custom-2 bg-main rounded-[25px] relative hover:translate-y-[4px]`}
         >
             <div className={`bg-main h-[100px] text-white relative rounded-t-[25px]`}>
-                {classItem.background ? (
-                    <></>
-                ) : (
-                    // <Image
-                    //     src={classItem.background}
-                    //     alt="class background"
-                    //     width={387}
-                    //     height={100}
-                    //     className="absolute w-full h-[100px] object-cover rounded-t-[25px]"
-                    // />
-                    <div
-                        className={`absolute top-0 h-full flex items-center w-full bg-gradient-to-r from-[#000] to-[#000] ${classItem.theme} rounded-t-[25px] overflow-hidden`}
-                        // style={{ backgroundImage: `linear-gradient(to right, )` }}
-                    ></div>
-                )}
+                <div
+                    className={`absolute top-0 h-full flex items-center w-full rounded-t-[25px] overflow-hidden`}
+                    style={{
+                        backgroundImage: `linear-gradient(to right, ${classItem.theme.from}, ${classItem.theme.to})`,
+                    }}
+                ></div>
 
                 <div className="w-full h-full flex flex-col items-center px-[12px] justify-center translate-y-[-18px] contrast-100">
                     <Image
                         src={classItem.owner.avatar || images.teacher}
                         alt="teacher avatar"
-                        className="w-[70px] h-[70px] bg-white rounded-full p-2 border-4 border-white border-solid mb-[4px]"
+                        className="bg-white rounded-full p-2 border-4 border-white border-solid mb-[4px]"
+                        width={70}
+                        height={70}
                     />
                     <div className="text-[20px] font-bold">{classItem.name}</div>
                     <div className="text-[16px]">{classItem.owner.name}</div>
