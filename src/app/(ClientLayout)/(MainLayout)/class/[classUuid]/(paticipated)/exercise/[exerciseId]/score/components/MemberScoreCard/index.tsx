@@ -1,71 +1,130 @@
 import { FileType, TimeData } from '~/constant';
-import MemberCard, { MemberCardInfor } from '../../../../../components/MemberCard';
 import { useState } from 'react';
+import { motion } from 'framer-motion';
+import { AnimatePresence } from 'framer-motion';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCaretDown, faCaretUp, faCircleNotch } from '@fortawesome/free-solid-svg-icons';
+
+import MemberCard, { MemberCardInfor } from '../../../../../components/MemberCard';
 import Button from '~/components/Button';
 import DetailAsignment from '../DetailAsignment';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCaretDown, faCaretUp } from '@fortawesome/free-solid-svg-icons';
-import Input from '~/components/Input';
-import { AnimatePresence } from 'framer-motion';
 import MarkScoreModal from './components/MarkScoreModal';
 import colorLevel from '~/components/TextEditor/utils/colorLevel';
+import { PostController } from '~/controller';
 
 interface MemberScoreInfor extends MemberCardInfor {
-    score: string | number | null;
-    timeAsign: TimeData;
-    files: Array<FileType>;
+    isMarked: boolean;
+    score: string | number;
+    feedback: string | null;
+    timeAssign: TimeData;
+    assignFiles: Array<FileType>;
+    user: {
+        name: string;
+        email: string;
+        avatar: string | null;
+        role: string;
+    };
 }
 
-export default function MemberScoreCard({ infor }: { infor: MemberScoreInfor }) {
+export default function MemberScoreCard({
+    classUuid,
+    infor,
+    submitUuid,
+    isExpired,
+    refetch,
+}: {
+    classUuid: string;
+    refetch: any;
+    isExpired: boolean;
+    submitUuid: string;
+    infor: MemberScoreInfor;
+}) {
     const [openDetailAsign, setOpenDetailAsign] = useState(false);
     const [openMarkScore, setOpenMarkScore] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    const handleMarkScore = async (score: string, feedback: string) => {
+        setLoading(true);
+        const postController = new PostController();
+
+        const data = await postController.markScore(classUuid, submitUuid, score, feedback);
+
+        if (!data.error) {
+            refetch();
+            setOpenMarkScore(false);
+        }
+
+        setLoading(false);
+    };
 
     return (
         <div className="w-full flex flex-col items-center">
             <MemberCard
                 className={`${openDetailAsign ? 'rounded-b-none' : ''}`}
-                infor={{ name: infor.name }}
+                infor={{
+                    email: infor.user.email,
+                    name: infor.user.name,
+                    avatar: infor.user.avatar,
+                    role: infor.user.role,
+                }}
                 actionsElement={
                     <>
-                        <div>
-                            <span className="font-semibold text-[18px]">Thời gian nộp: </span>
-                            <span className="">
-                                {infor.timeAsign.time} {infor.timeAsign.date}
-                            </span>
-                        </div>
+                        {infor.timeAssign.time ? (
+                            <div>
+                                <span className="font-semibold text-[18px]">Thời gian nộp: </span>
+                                <span className="">
+                                    {infor.timeAssign.time} {infor.timeAssign.date}
+                                </span>
+                            </div>
+                        ) : (
+                            <div className="font-semibold text-[18px]">Chưa nộp</div>
+                        )}
                         <div className="flex items-center">
-                            {infor.score !== null ? (
-                                <div>
-                                    <span className="font-semibold text-[18px] mr-[4px]">Điểm:</span>
-                                    <span className={`font-medium ${colorLevel(infor.score)}`}>{infor.score}</span>
-                                    /100
-                                </div>
-                            ) : (
-                                <Button
-                                    handleClick={() => {
-                                        setOpenMarkScore(true);
-                                    }}
-                                    className="rounded-lg"
-                                    theme="fill"
-                                >
-                                    Chấm điểm
-                                </Button>
-                            )}
+                            <div>
+                                <span className="font-semibold text-[18px] mr-[4px]">Điểm:</span>
+                                <span className={`font-medium ${colorLevel(infor.score)}`}>{infor.score}</span>
+                                /100
+                            </div>
+                            {isExpired ||
+                                (infor.isMarked && (
+                                    <Button
+                                        handleClick={() => {
+                                            setOpenMarkScore(true);
+                                        }}
+                                        className="rounded-lg  ml-[12px]"
+                                        theme="fill"
+                                    >
+                                        {loading ? (
+                                            <motion.div animate={{ rotate: '360' }} transition={{ repeat: Infinity }}>
+                                                <FontAwesomeIcon icon={faCircleNotch} />
+                                            </motion.div>
+                                        ) : infor.isMarked ? (
+                                            'Sửa đổi'
+                                        ) : (
+                                            'Chấm điểm'
+                                        )}
+                                    </Button>
+                                ))}
                         </div>
-                        <div
-                            className="p-[4px] cursor-pointer"
-                            onClick={() => {
-                                setOpenDetailAsign((prev) => !prev);
-                            }}
-                        >
-                            <FontAwesomeIcon icon={openDetailAsign ? faCaretDown : faCaretUp} />
-                        </div>
+                        {infor.timeAssign.time && (
+                            <div
+                                className="p-[4px] cursor-pointer"
+                                onClick={() => {
+                                    setOpenDetailAsign((prev) => !prev);
+                                }}
+                            >
+                                <FontAwesomeIcon icon={openDetailAsign ? faCaretDown : faCaretUp} />
+                            </div>
+                        )}
                     </>
                 }
             />
-            <AnimatePresence>{openDetailAsign && <DetailAsignment files={infor.files} />}</AnimatePresence>
+            <AnimatePresence>{openDetailAsign && <DetailAsignment files={infor.assignFiles} />}</AnimatePresence>
             {openMarkScore && (
                 <MarkScoreModal
+                    initScore={infor.score.toString()}
+                    initFeedback={infor.feedback || null}
+                    handleSubmit={handleMarkScore}
                     handleCloseModal={() => {
                         setOpenMarkScore(false);
                     }}
