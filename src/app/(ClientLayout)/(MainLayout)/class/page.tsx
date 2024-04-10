@@ -2,27 +2,63 @@
 
 import image from '~/assets/image';
 import ClassItem from './components/classItem';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import Selection from '~/components/Selection';
 import { useQueryClient } from '@tanstack/react-query';
 import { ClassController } from '~/controller/class.controller';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faRightToBracket } from '@fortawesome/free-solid-svg-icons';
 import Button from '~/components/Button';
-import CreateClassModal from './components/createClassModal';
+import EditClassModal, { FormData } from './components/editClassModal';
 import JoinModal from './components/joinModal';
 import useProfile from '~/hooks/useProfile';
-import Loading from '~/components/Loading/intex';
+import Loading from '~/components/Loading';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { io } from 'socket.io-client';
+import { NotificationTheme } from '../layout';
+import { NotificationType } from '~/components/Notification';
 
 export default function Page() {
-    const [classShow, setClassShow] = useState<Array<any>>([]);
-    const [openCreateModal, setOpenCreateModal] = useState(false);
+    const [classShow, setClassShow] = useState<Array<any> | null>(null);
+    const [openEditModal, setOpenEditModal] = useState(false);
     const [openJoinModal, setOpenJoinModal] = useState(false);
+    const [currentFilter, setCurrentFilter] = useState('');
     const queryClient = useQueryClient();
-    const { data: user, isSuccess, refetch, isFetching } = useProfile();
-    const router = useRouter();
+    const { data: user, isSuccess, isFetching } = useProfile();
+    const notificationShow = useContext(NotificationTheme);
+
+    useEffect(() => {
+        if (isSuccess) {
+            const socket = io('http://localhost:4000');
+
+            socket.on('connect', () => {
+                socket.on(`${user.uuid}/addToClass`, () => {
+                    fetchClasses('Đang tham gia');
+                });
+
+                socket.on(`${user.uuid}/removed`, () => {
+                    fetchClasses('Đang tham gia');
+                });
+
+                socket.on(`${user.uuid}/requestClass`, () => {
+                    fetchClasses('Đang tham gia');
+                });
+            });
+
+            return () => {
+                if (socket) {
+                    socket.disconnect();
+                }
+            };
+        }
+    }, [isSuccess]);
+
+    useEffect(() => {
+        if (currentFilter) {
+            fetchClasses();
+        }
+    }, [currentFilter]);
 
     const filter = useMemo(() => {
         if (user) {
@@ -32,16 +68,16 @@ export default function Page() {
         } else return [];
     }, [user]);
 
-    const fetchClasses = async (seletion: string) => {
+    const fetchClasses = async (selection?: string) => {
         const classController = new ClassController();
-
+        const filterName = selection || currentFilter;
         let filter = '';
 
-        if (seletion === 'Sở hữu') {
+        if (filterName === 'Sở hữu') {
             filter = 'owner';
-        } else if (seletion === 'Đang tham gia') {
+        } else if (filterName === 'Đang tham gia') {
             filter = 'join';
-        } else if (seletion === 'Chờ xác nhận') {
+        } else if (filterName === 'Chờ xác nhận') {
             filter = 'waiting';
         }
 
@@ -51,7 +87,28 @@ export default function Page() {
             queryFn: () => classController.getClasses(filter),
         });
 
-        setClassShow(data);
+        if (!data.error) {
+            setClassShow(data);
+        }
+    };
+
+    const handleCreateClass = async (formData: FormData) => {
+        if (user) {
+            const classController = new ClassController();
+            const data = await classController.createClass(formData);
+
+            if (!data.error) {
+                fetchClasses('Sở hữu');
+                setOpenEditModal(false);
+                notificationShow('Tạo lớp học thành công', NotificationType.success);
+            } else {
+                notificationShow(data.error, NotificationType.error);
+            }
+        }
+    };
+
+    const handleSelectedFilter = (selection: string) => {
+        setCurrentFilter(selection);
     };
 
     return (
@@ -65,7 +122,7 @@ export default function Page() {
                             className="text-white"
                             label="Lớp học"
                             defaultSelection={filter[0]}
-                            onChange={(selection) => fetchClasses(selection)}
+                            onChange={handleSelectedFilter}
                             optionData={filter}
                         />
                     </div>
@@ -73,7 +130,7 @@ export default function Page() {
                 {isSuccess && user.role === 'TEACHER' && (
                     <Button
                         handleClick={() => {
-                            setOpenCreateModal(true);
+                            setOpenEditModal(true);
                         }}
                         className="min-w-[150px] w-[200px]"
                     >
@@ -91,7 +148,7 @@ export default function Page() {
                     Tham gia lớp
                 </Button>
             </div>
-            {isFetching ? (
+            {isFetching || !classShow ? (
                 <Loading />
             ) : classShow.length === 0 ? (
                 <div className="text-[32px] font-bold text-center ">Không có lớp phù hợp</div>
@@ -105,11 +162,11 @@ export default function Page() {
                 </div>
             )}
 
-            {openCreateModal && (
-                <CreateClassModal
-                    refetchClass={fetchClasses}
+            {openEditModal && (
+                <EditClassModal
+                    handleSubmit={handleCreateClass}
                     handleCloseModal={() => {
-                        setOpenCreateModal(false);
+                        setOpenEditModal(false);
                     }}
                 />
             )}
