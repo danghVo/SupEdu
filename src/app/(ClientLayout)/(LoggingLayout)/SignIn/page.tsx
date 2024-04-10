@@ -11,25 +11,28 @@ import { UserController } from '~/controller';
 import { useState } from 'react';
 import { requiredRule } from '~/components/Input/rules';
 import { useRouter } from 'next/navigation';
+import Loading from '~/components/Loading';
 
 export default function Page() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
-    const queryClient = useQueryClient();
 
     const handleSubmit = async () => {
         const userController = new UserController();
 
-        const data = await queryClient.fetchQuery({
-            queryKey: ['user'],
-            queryFn: () => userController.signIn({ email, password }),
-        });
+        setLoading(true);
+        setError('');
+        const data = await userController.signIn({ email, password });
 
         if (data.error) {
             setError(data.error);
-        } else router.push('/class');
+        } else {
+            router.push('/class');
+        }
+        setLoading(false);
     };
 
     return (
@@ -51,9 +54,13 @@ export default function Page() {
                 </div>
                 <Form
                     handleSubmit={handleSubmit}
-                    className="w-full"
+                    className={`w-full`}
                     errMessage={{ message: error }}
-                    submit={{ content: 'Đăng nhập', custom: 'rounded-full ' }}
+                    submit={{
+                        content: loading ? <Loading className="text-white" /> : 'Đăng nhập',
+                        custom: 'rounded-full',
+                        loading,
+                    }}
                 >
                     <Input
                         value={email}
@@ -71,10 +78,6 @@ export default function Page() {
                         placeholder="Mật khẩu"
                     />
                 </Form>
-                <div className="flex items-center">
-                    Đăng nhập với:{' '}
-                    <Image width={30} className="ml-[8px] cursor-pointer" src={image.google} alt="Google Icon" />
-                </div>
             </motion.div>
         </div>
     );
