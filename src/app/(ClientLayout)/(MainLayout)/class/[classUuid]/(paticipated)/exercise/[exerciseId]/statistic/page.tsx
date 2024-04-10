@@ -2,29 +2,51 @@
 
 import BarChart from '~/components/BarChart';
 
-const data = ['90', '20', '40', '30', '20', '60', '80', '90', '100', '95', '70', '75'];
+import { useClass } from '~/hooks';
+import useSubmits from '~/hooks/useSubmits';
 
-export default function page() {
+export default function page({
+    params: { classUuid, exerciseId },
+}: {
+    params: { classUuid: string; exerciseId: string };
+}) {
+    const { data: submits, isSuccess } = useSubmits(exerciseId);
+    const { data: classData, isSuccess: isClassSuccess } = useClass(classUuid);
+    let score = [];
+
+    if (isSuccess) {
+        score = submits.filter((submit: any) => submit.isMarked).map((item: any) => item.score);
+    }
+
     return (
-        <div>
-            <BarChart
-                name="Điểm bài tập"
-                data={{
-                    labels: ['< 50', '50 - 80', '80 - 100'],
-                    datasets: [
-                        {
-                            label: 'Điểm',
-                            data: [
-                                data.filter((item) => parseInt(item) < 50).length,
-                                data.filter((item) => parseInt(item) >= 50 && parseInt(item) < 80).length,
-                                data.filter((item) => parseInt(item) >= 80 && parseInt(item) <= 100).length,
+        isSuccess &&
+        isClassSuccess && (
+            <div>
+                {score.length > 0 ? (
+                    <BarChart
+                        name="Điểm bài tập"
+                        data={{
+                            labels: ['< 50', '50 - 80', '80 - 100'],
+                            datasets: [
+                                {
+                                    label: 'Điểm',
+                                    data: [
+                                        score.filter((score: number) => score < 50).length,
+                                        score.filter((score: number) => score >= 50 && score < 80).length,
+                                        score.filter((score: number) => score >= 80 && score <= 100).length,
+                                    ],
+                                    backgroundColor: ['rgb(248 113 113)', 'rgb(250 204 21)', 'rgb(163 230 53)'],
+                                    width: '32px',
+                                },
                             ],
-                            backgroundColor: ['rgb(248 113 113)', 'rgb(250 204 21)', 'rgb(163 230 53)'],
-                            width: '32px',
-                        },
-                    ],
-                }}
-            />
-        </div>
+                        }}
+                    />
+                ) : (
+                    <div style={{ color: classData.textColor }} className="text-[24px] font-bold text-center mt-[24px]">
+                        Không có dữ liệu
+                    </div>
+                )}
+            </div>
+        )
     );
 }
