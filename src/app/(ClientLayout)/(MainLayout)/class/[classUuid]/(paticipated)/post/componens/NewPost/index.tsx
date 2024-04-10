@@ -1,29 +1,37 @@
 import { faCirclePlus, faCircleXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useContext, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'framer-motion';
-import { useState } from 'react';
+
+import { NotificationTheme } from '~/app/(ClientLayout)/(MainLayout)/layout';
+import { NotificationType } from '~/components/Notification';
 import PostCard from '~/components/PostCard';
 import { PostController } from '~/controller';
 
 export default function NewPost({ classUuid }: { classUuid: string }) {
     const [isNewPost, setIsNewPost] = useState(false);
     const queryClient = useQueryClient();
+    const notificationShow = useContext(NotificationTheme);
 
     const handleCreatePost = async (payload: any) => {
         const postController = new PostController();
 
-        const res = await queryClient.fetchQuery({
-            queryKey: ['createPost'],
-            queryFn: () => postController.createPost(payload, classUuid),
-        });
+        const res = await postController.createPost(classUuid, payload);
 
         if (res && !res.error) {
             await queryClient.invalidateQueries({
                 queryKey: ['posts', classUuid],
             });
+            queryClient.invalidateQueries({
+                queryKey: ['calendar', classUuid],
+            });
             setIsNewPost(false);
+            notificationShow('Tạo bài viết thành công', NotificationType.success);
+            return true;
         }
+
+        return false;
     };
 
     return (
@@ -61,7 +69,7 @@ export default function NewPost({ classUuid }: { classUuid: string }) {
                             exit={{ height: 0, marginBottom: 0, opacity: 0 }}
                             className="w-full flex justify-center z-0"
                         >
-                            <PostCard edit handleSubmit={handleCreatePost} />
+                            <PostCard classUuid={classUuid} edit handleSubmit={handleCreatePost} />
                         </motion.div>
                     )}
                 </AnimatePresence>
