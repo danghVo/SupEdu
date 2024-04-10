@@ -1,17 +1,35 @@
-import { faUserPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faUserPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { useState } from 'react';
+
 import Button from '~/components/Button';
 import Input from '~/components/Input';
 import Modal from '~/components/Modal';
-import { AnimatePresence, motion } from 'framer-motion';
 
-export default function AddMember({ link }: { link: string }) {
+export default function AddMember({
+    handleSubmit,
+    link,
+}: {
+    handleSubmit: (email: string) => Promise<String>;
+    link: string;
+}) {
     const [openAddModal, setOpenAddModal] = useState(false);
     const [emailMember, setEmailMember] = useState('');
+    const [error, setError] = useState<String>('');
 
     const handleCopyLinkToClipBoard = () => {
         window.navigator.clipboard.writeText(link);
+    };
+
+    const handleAddMember = async () => {
+        if (!emailMember) return;
+
+        const res = await handleSubmit(emailMember);
+
+        if (!res) {
+            setEmailMember('');
+            setOpenAddModal(false);
+        } else setError(res);
     };
 
     return (
@@ -26,63 +44,54 @@ export default function AddMember({ link }: { link: string }) {
                 <span>Thêm thành viên</span>
             </div>
 
-            <AnimatePresence>
-                {openAddModal && (
-                    <Modal
-                        width={'fit-content'}
-                        height={'fit-content'}
-                        handleCloseModal={() => {
-                            setOpenAddModal(false);
-                        }}
-                    >
-                        <motion.div
-                            initial={{ opacity: 0.5 }}
-                            animate={{ opacity: 1 }}
-                            exit={{ opacity: 0 }}
-                            className="relative bg-white px-[16px] py-[18px] rounded-lg"
-                        >
-                            <div
-                                className="absolute right-[16px] top-0 text-[24px]"
-                                onClick={() => {
-                                    setOpenAddModal(false);
-                                }}
-                            >
-                                <FontAwesomeIcon icon={faXmark} />
+            {openAddModal && (
+                <Modal
+                    width={'w-[500px]'}
+                    height={'fit-content'}
+                    handleCloseModal={() => {
+                        setOpenAddModal(false);
+                        setError('');
+                        setEmailMember('');
+                    }}
+                >
+                    <div className="bg-white px-[16px] py-[18px] rounded-lg">
+                        <div className="text-center mb-[16px] text-[24px] font-semibold uppercase">Thêm thành viên</div>
+                        {error && (
+                            <div className="rounded-lg w-full px-[12px] py-[4px] bg-red-200 text-red-500 mt-[px]">
+                                {error}
                             </div>
-                            <div className="text-center mb-[16px] text-[24px] font-semibold uppercase">
-                                Thêm thành viên
-                            </div>
-                            <div className="flex items-center mt-[12px] mb-[24px]">
-                                <div className="whitespace-nowrap mx-[8px]">Email thành viên</div>
-                                <Input
-                                    classNameWrapper="mt-0 rounded-lg h-[40px] px-[8px]"
-                                    value={emailMember}
-                                    onChange={setEmailMember}
-                                />
-                                {emailMember && (
-                                    <Button handleClick={() => {}} className="ml-[8px] rounded-lg">
-                                        Xác nhận
-                                    </Button>
-                                )}
-                            </div>
-                            <div className="flex items-center">
-                                <div className="mx-[8px]">Hoặc</div>
-                                <div className="bg-white rounded-lg w-full h-[40px] flex justify-between items-center overflow-hidden">
-                                    <div className="ml-[12px] border-2 border-r-0 border-black grow h-full rounded-l-lg flex items-center px-[12px]">
-                                        {link}
-                                    </div>
-                                    <Button
-                                        handleClick={handleCopyLinkToClipBoard}
-                                        className="rounded-none rounded-r-lg"
-                                    >
-                                        Copy link
-                                    </Button>
+                        )}
+                        <div className="flex items-center mt-[12px] mb-[24px]">
+                            <div className="whitespace-nowrap mx-[8px]">Email thành viên</div>
+                            <Input
+                                classNameWrapper="mt-0 rounded-lg h-[40px] px-[8px]"
+                                value={emailMember}
+                                onChange={setEmailMember}
+                            />
+                            {emailMember && (
+                                <Button handleClick={() => handleAddMember()} className="ml-[8px] rounded-lg">
+                                    Thêm
+                                </Button>
+                            )}
+                        </div>
+
+                        <div className="flex items-center">
+                            <div className="mx-[8px]">Hoặc</div>
+                            <div className="bg-white rounded-lg w-[400px] h-[40px] flex justify-between items-center">
+                                <div className="ml-[12px] border-2 border-r-0 border-black h-full rounded-l-lg flex items-center px-[12px] overflow-hidden">
+                                    <span className="truncate">{link}</span>
                                 </div>
+                                <Button
+                                    handleClick={handleCopyLinkToClipBoard}
+                                    className="rounded-none rounded-r-lg w-[200px]"
+                                >
+                                    Copy link
+                                </Button>
                             </div>
-                        </motion.div>
-                    </Modal>
-                )}
-            </AnimatePresence>
+                        </div>
+                    </div>
+                </Modal>
+            )}
         </>
     );
 }
