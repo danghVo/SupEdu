@@ -1,10 +1,9 @@
 import Image from 'next/image';
-import { FileType } from '~/constant';
 import { motion } from 'framer-motion';
 
-export default function DetailAsignment({ files }: { files: Array<FileType> }) {
-    // fetch data
+import { FileType } from '~/constant';
 
+export default function DetailAsignment({ files }: { files: Array<FileType> }) {
     return (
         <motion.div
             initial={{ height: 0 }}
@@ -23,7 +22,7 @@ export default function DetailAsignment({ files }: { files: Array<FileType> }) {
                                 className={`border-2 w-fit h-[50px] px-[12px] flex items-center rounded-lg my-[12px]`}
                             >
                                 <Image
-                                    src={require(`~/assets/filetype/${file.type}.png`)}
+                                    src={require(`~/assets/extension/${file.extension}.png`)}
                                     className="bg-contain w-fit max-h-full py-[8px] pr-[8px]"
                                     alt="file-type"
                                 />
