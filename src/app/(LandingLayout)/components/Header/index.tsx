@@ -4,7 +4,6 @@ import Image from 'next/image';
 import { useEffect, useState } from 'react';
 import image from '~/assets/image';
 
-import Nav from './Nav';
 import Button from '~/components/Button/index';
 import Link from 'next/link';
 
