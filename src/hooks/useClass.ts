@@ -1,8 +1,9 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { ClassController } from '~/controller/class.controller';
 
 export default function useClass(uuid: string) {
     const classController = new ClassController();
+    const queryClient = useQueryClient();
 
     return useQuery({
         queryKey: ['class', uuid],
