@@ -24,7 +24,13 @@ export default function Avatar({ className, userInfor }: AvatarProps) {
             }}
             onMouseLeave={() => [setIsShowInfor(false)]}
         >
-            <Image src={userInfor.avatar || image.teacher} alt="avatar" className={`w-[40px] h-[40px] ${className}`} />
+            <Image
+                src={userInfor.avatar !== null ? userInfor.avatar : image.teacher}
+                width={40}
+                height={40}
+                alt="avatar"
+                className={`w-[40px] h-[40px] rounded-full ${className}`}
+            />
 
             {isShowInfor && (
                 <motion.div
