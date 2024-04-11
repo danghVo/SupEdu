@@ -1,17 +1,4 @@
-export const month = [
-    'January',
-    'February',
-    'March',
-    'April',
-    'May',
-    'June',
-    'July',
-    'August',
-    'September',
-    'October',
-    'November',
-    'December',
-];
+export const month = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12'];
 
 export const hour = new Array(24).fill(-1).map((item, index) => index);
 export const minute = new Array(60).fill(-1).map((item, index) => index);
