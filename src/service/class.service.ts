@@ -17,19 +17,43 @@ export class ClassService extends HTTP {
         return await this.get(`/class/${classUuid}`);
     }
 
+    async getCalendar(classUuid: string) {
+        return await this.get(`/class/${classUuid}/calendar`);
+    }
+
     async createClass(payload: any) {
-        return await this.post('/class/create', payload, {}, true);
+        return await this.post('/class', payload);
     }
 
-    async updateClass(id: string, payload: { name: string; description: string; teacher: string; students: string[] }) {
-        return await this.post(`/class/${id}`, payload);
+    async updateClass(classUuid: string, payload: any) {
+        return await this.patch(`/class/${classUuid}`, payload);
     }
 
-    async deleteClass(id: string) {
-        return await this.post(`/class/${id}`);
+    async deleteClass(classUuid: string) {
+        return await this.delete(`/class/${classUuid}`);
     }
 
     async joinClass(classUuid: string, password: string | null) {
         return await this.post(`/class/join/${classUuid}`, { password });
+    }
+
+    async responseJoinClass(classUuid: string, userUuid: string, approve: boolean) {
+        return await this.patch(`/class/${classUuid}/approve/${userUuid}`, { approve });
+    }
+
+    async addMember(classUuid: string, email: string) {
+        return await this.put(`/class/${classUuid}/member`, { email });
+    }
+
+    async removeMember(classUuid: string, userUuid: string) {
+        return await this.delete(`/class/${classUuid}/member/${userUuid}`);
+    }
+
+    async leaveClass(classUuid: string) {
+        return await this.delete(`/class/leave/${classUuid}`);
+    }
+
+    async getMembers(classUuid: string) {
+        return await this.get(`/class/${classUuid}/members`);
     }
 }
