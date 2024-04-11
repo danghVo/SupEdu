@@ -99,6 +99,7 @@ function TextEditor({
     className = '',
     isToolboxType = true,
     isToolboxOffetStype = true,
+    pressEnter,
     label,
     onChange,
 }: {
@@ -108,6 +109,7 @@ function TextEditor({
     isToolboxType?: boolean;
     isToolboxOffetStype?: boolean;
     className?: string;
+    pressEnter?: (content: RawDraftContentState) => void;
     label: string;
     onChange?: (contentState: RawDraftContentState) => void;
 }) {
@@ -159,8 +161,28 @@ function TextEditor({
                 ...prev,
                 state: EditorState.createWithContent(convertFromRaw(rawContentState)),
             }));
-        }
-    }, []);
+        } else
+            setEditor({
+                state: EditorState.createWithContent(
+                    convertFromRaw({
+                        entityMap: {},
+                        blocks: [
+                            {
+                                text: '',
+                                key: uuid,
+                                type: 'unstyled',
+                                entityRanges: [],
+                                depth: 0,
+                                inlineStyleRanges: [],
+                            },
+                        ],
+                    }),
+                    decorator,
+                ),
+                style: [],
+                type: '',
+            });
+    }, [rawContentState]);
 
     useEffect(() => {
         let offsetTop = toolboxType.offsetTop;
@@ -346,6 +368,15 @@ function TextEditor({
         const currentSelection = editor.state.getSelection().getAnchorKey();
         const currentBlock = currentContent.getBlockForKey(currentSelection);
         const selection = editor.state.getSelection();
+
+        if (e.key === 'Enter' && e.shiftKey) {
+            return getDefaultKeyBinding(e);
+        }
+
+        if (pressEnter && e.key === 'Enter') {
+            pressEnter(convertToRaw(editor.state.getCurrentContent()));
+            return 'not-handled';
+        }
 
         if (e.key === 'Enter' && currentBlock.getType() === 'add-youtube-link') {
             return 'loadYoutubeVideo';
