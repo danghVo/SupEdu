@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
-import Button from '../Button';
 import { motion } from 'framer-motion';
+
+import Button from '../Button';
 
 interface FormProps {
     children: React.ReactNode;
@@ -9,7 +10,8 @@ interface FormProps {
     errMessage?: { message: string };
     submit: {
         custom?: string;
-        content: string;
+        content: string | React.ReactNode;
+        loading?: boolean;
     };
     customError?: string;
     props?: any;
@@ -47,7 +49,7 @@ function Form({ children, className = '', handleSubmit, submit, errMessage, cust
                 if (error) {
                     valid = false;
                 }
-                if (inputElement.value === '' && !inputElement.getAttribute('data-optional')) {
+                if (!inputElement.value && inputElement.getAttribute('data-optional') === 'false') {
                     valid = false;
                     setError(error || 'Vui lòng nhập đầy đủ thông tin');
                 }
@@ -61,16 +63,12 @@ function Form({ children, className = '', handleSubmit, submit, errMessage, cust
     };
 
     return (
-        <div
-            ref={formRef}
-            className={`max-w-[450px] flex-col items-center justify-center rounded-xl p-8 ${className}`}
-            {...props}
-        >
+        <div ref={formRef} className={`max-w-[450px] rounded-xl p-8 ${className}`} {...props}>
             {error && (
                 <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
-                    className={`bg-red-200 text-red-700 py-[12px] px-[16px] mb-[16px] rounded-2xl ${customError}`}
+                    className={`w-full bg-red-200 text-red-700 py-[12px] px-[16px] mb-[16px] rounded-2xl ${customError}`}
                 >
                     {error}
                 </motion.div>
@@ -80,7 +78,8 @@ function Form({ children, className = '', handleSubmit, submit, errMessage, cust
                 <Button
                     theme="fill"
                     size="big"
-                    className={`mt-16 w-[80%]  ${submit.custom || ''}`}
+                    disabled={submit?.loading}
+                    className={`mt-16 w-[80%] ${submit.custom || ''}`}
                     handleClick={handleCheckForSubmit}
                 >
                     {submit.content || 'Gửi'}
