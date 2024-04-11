@@ -13,6 +13,10 @@ export class AuthService extends HTTP {
         return await this.post('/auth/signup', payload);
     }
 
+    async logOut(uuid: string) {
+        return await this.post(`/auth/logout/${uuid}`);
+    }
+
     async resendVerifyMail(uuid: string) {
         return await this.get(`/auth/resend-verify-mail/${uuid}`);
     }
