@@ -1,6 +1,6 @@
-import { ChangeEvent, KeyboardEventHandler, Ref, forwardRef, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, Ref, forwardRef, useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircleCheck, faCircleExclamation, faEraser, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { faEraser } from '@fortawesome/free-solid-svg-icons';
 
 import useValid from '~/hooks/useValid';
 
@@ -28,23 +28,11 @@ export interface InputProps {
     multiple?: boolean;
 }
 
-const iconStatusName = {
-    success: {
-        name: faCircleCheck,
-        color: '--success',
-    },
-    warning: {
-        name: faCircleExclamation,
-        color: '--warning',
-    },
-};
-
 function Input(
     {
         value = '',
         label = '',
         inputType = 'text',
-        textArea = false,
         rules = [],
         reset = true,
         onChange,
@@ -105,7 +93,7 @@ function Input(
                     <div className="grow">
                         <input
                             ref={forwardRef || undefined}
-                            id={label}
+                            id={label || undefined}
                             type={inputType}
                             accept={accept}
                             multiple={multiple}
