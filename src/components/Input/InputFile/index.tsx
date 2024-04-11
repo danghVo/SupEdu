@@ -1,7 +1,7 @@
+import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import classNames from 'classnames/bind';
 
 import styles from './InputFile.module.scss';
-import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import Input from '../index';
 
 const cs = classNames.bind(styles);
