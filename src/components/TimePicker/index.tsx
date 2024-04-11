@@ -37,7 +37,6 @@ export default function TimePicker({
             const gapContrains = numberScrollRect.height - wrapperRect.height;
 
             const distanceToCurrentNumber = gapFromWrapperToActive - heightPerItem * currentTime;
-            console.log(numberScrollRect.top);
 
             setNumberDragInfo((prev) => ({
                 ...prev,
@@ -83,8 +82,6 @@ export default function TimePicker({
             }
 
             const distanceToCurrentNumber = numberDragInfo.move + itemMove * heightPerItem;
-
-            console.log(numberDragInfo.prevNumberScrollTop);
 
             setCurrentTime((prev) => prev - itemMove);
 
