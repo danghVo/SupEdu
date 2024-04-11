@@ -5,3 +5,4 @@ export { default as minLengthRule } from './minLengthRule';
 export { default as maxLengthRule } from './maxLengthRule';
 export { default as sameValueRule } from './sameValueRule';
 export { default as daySelectingRule } from './daySelectingRule';
+export { default as joinClassValueRule } from './joinClassValueRule';
