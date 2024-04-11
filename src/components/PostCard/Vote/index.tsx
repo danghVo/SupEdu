@@ -1,14 +1,20 @@
 import { faCircle } from '@fortawesome/free-regular-svg-icons';
 import { faPlus, faXmark } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { SyntheticEvent, useEffect, useState } from 'react';
-import Button from '~/components/Button';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
+import { io } from 'socket.io-client';
+
+import Button from '~/components/Button';
+import { PostController } from '~/controller';
+import { useClass, useVote } from '~/hooks';
+import checkTimeExprire from '~/components/TextEditor/utils/checkTimeExpire';
+import { TimeData } from '~/constant';
 
 interface VoteItem {
-    uuid?: String;
+    uuid?: string;
     value: string;
-    percent: number;
 }
 
 export interface VoteData {
@@ -17,20 +23,41 @@ export interface VoteData {
 }
 
 export default function Vote({
+    expireTime = undefined,
+    classUuid,
     edit,
     voteData,
     onChange,
 }: {
+    expireTime?: TimeData | undefined;
+    classUuid: string;
     edit: boolean;
     voteData: VoteData | null;
     onChange: (voteDate: VoteData) => void;
 }) {
-    const [options, setOptions] = useState<Array<VoteItem>>([
-        { value: '', percent: 0 },
-        { value: '', percent: 0 },
-    ]);
-    const [selection, setSelection] = useState<string | null>(null);
+    const [options, setOptions] = useState<Array<VoteItem>>([{ value: '' }, { value: '' }]);
     const [error, setError] = useState('');
+    const { data: voteChosen, isSuccess, isRefetching, refetch } = useVote(voteData?.uuid);
+    const { data: classData, isSuccess: isClassSuccess } = useClass(classUuid);
+    const queryClient = useQueryClient();
+
+    useEffect(() => {
+        if (voteData?.uuid) {
+            const socket = io('http://localhost:4000');
+
+            socket.on('connect', () => {
+                socket.on(`${voteData.uuid}`, () => {
+                    refetch!();
+                });
+            });
+
+            return () => {
+                if (socket) {
+                    socket.disconnect();
+                }
+            };
+        }
+    }, [voteData?.uuid]);
 
     useEffect(() => {
         if (voteData) {
@@ -39,14 +66,13 @@ export default function Vote({
     }, []);
 
     useEffect(() => {
-        if (!error) {
+        if (!error && edit) {
             onChange({
+                uuid: voteData?.uuid,
                 options,
             });
         }
     }, [options]);
-
-    useEffect(() => {});
 
     const handleChangeOption = (e: any, index: number) => {
         const value = e.target.value;
@@ -57,13 +83,16 @@ export default function Vote({
             setError('');
         }
 
-        options[index].value = value;
+        options[index] = {
+            value,
+            uuid: undefined,
+        };
 
         setOptions([...options]);
     };
 
     const hanldeAddNewOption = () => {
-        setOptions((prev) => [...prev, { value: '', percent: 0 }]);
+        setOptions((prev) => [...prev, { value: '' }]);
     };
 
     const handleRemoveOption = (removedIndex: number) => {
@@ -74,22 +103,48 @@ export default function Vote({
         }
     };
 
-    const handleChooseOption = (selection: string) => {
-        if (!edit) {
-            setSelection(selection);
+    const handleChooseOption = async (option: VoteItem) => {
+        if (
+            !edit &&
+            isClassSuccess &&
+            !classData.isOwner &&
+            expireTime &&
+            !checkTimeExprire(expireTime.time, expireTime.date)
+        ) {
+            if (voteData?.uuid && option.uuid) {
+                const postController = new PostController();
 
-            if (voteData?.uuid) {
-                // POST selection
+                const res = await queryClient.fetchQuery({
+                    queryKey: ['vote'],
+                    queryFn: () => postController.vote(voteData.uuid!, option.uuid!),
+                });
+
+                if (!res.error && refetch) {
+                    refetch();
+                }
             }
         }
     };
 
     const handleClear = () => {
-        setOptions(Array(2).fill({ value: '', percent: 0 }));
+        setOptions(Array(2).fill({ value: '' }));
     };
 
-    const handleRemoveSelection = () => {
-        setSelection(null);
+    const handleRemoveSelection = async () => {
+        if (!edit && !classData.isOwner && expireTime && !checkTimeExprire(expireTime.time, expireTime.date)) {
+            if (voteData?.uuid) {
+                const postController = new PostController();
+
+                const res = await queryClient.fetchQuery({
+                    queryKey: ['vote'],
+                    queryFn: () => postController.removeVote(voteData.uuid!),
+                });
+
+                if (!res.error && refetch) {
+                    refetch();
+                }
+            }
+        }
     };
 
     return (
@@ -103,7 +158,7 @@ export default function Vote({
             )}
             {!edit && (
                 <div className="flex items-center justify-between">
-                    {selection && (
+                    {voteChosen?.choose && (
                         <div
                             className="underline mr-[16px] font-semibold cursor-pointer"
                             onClick={handleRemoveSelection}
@@ -120,21 +175,25 @@ export default function Vote({
                             className={`px-[12px] my-[16px] shadow-custom-4 rounded-full overflow-hidden flex items-center`}
                             initial={{ border: '0px solid transparent' }}
                             animate={
-                                selection === option.value && !edit
+                                voteChosen?.choose === option?.uuid && !edit
                                     ? { border: '2px solid green' }
                                     : { border: '0px solid transparent' }
                             }
-                            onClick={() => handleChooseOption(option.value)}
+                            onClick={() => handleChooseOption(option)}
                         >
-                            <div
-                                className={`cursor-pointer h-[16px] flex items-center ${
-                                    selection === option.value && !edit
-                                        ? 'relative before:content-[""] before:block before:absolute before:top-0 before:w-full before:h-full before:bg-green-500 before:rounded-full'
-                                        : ''
-                                }`}
-                            >
-                                <FontAwesomeIcon icon={faCircle} />
-                            </div>
+                            {expireTime &&
+                                !checkTimeExprire(expireTime.time, expireTime.date) &&
+                                !classData.isOwner && (
+                                    <div
+                                        className={`cursor-pointer h-[16px] flex items-center ${
+                                            voteChosen?.choose === option?.uuid && !edit
+                                                ? 'relative before:content-[""] before:block before:absolute before:top-0 before:w-full before:h-full before:bg-green-500 before:rounded-full'
+                                                : ''
+                                        }`}
+                                    >
+                                        <FontAwesomeIcon icon={faCircle} />
+                                    </div>
+                                )}
                             <input
                                 className={`px-[8px] py-[8px] w-full outline-none ${!edit ? 'cursor-pointer' : ''}`}
                                 placeholder={`Lựa chọn ${index + 1}`}
@@ -151,14 +210,14 @@ export default function Vote({
                             )}
                         </motion.div>
 
-                        {selection && !edit && (
+                        {!edit && isSuccess && (voteChosen?.choose || (classData.isOwner && voteChosen)) && (
                             <div className="flex items-center gap-[16px] px-[8px]">
                                 <motion.div
-                                    className={`h-[20px] ${selection === option.value ? 'bg-green-500' : 'bg-black'} rounded-full`}
+                                    className={`h-[20px] ${voteChosen?.choose === option.uuid ? 'bg-green-500' : 'bg-black'} rounded-full`}
                                     initial={{ width: 0 }}
-                                    animate={{ width: option.percent + '%' }}
+                                    animate={{ width: `${voteChosen.options[option.uuid!] || 0}%` }}
                                 ></motion.div>
-                                <span className="font-semibold">{option.percent}%</span>
+                                <span className="font-semibold">{voteChosen.options[option.uuid!] || 0}%</span>
                             </div>
                         )}
                     </div>
