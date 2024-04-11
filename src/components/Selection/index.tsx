@@ -5,23 +5,27 @@ export default function Selection({
     label = '',
     optionData,
     className = '',
-    bgTheme = 'var(--text-color)',
+    disable = false,
     onChange,
     defaultSelection,
 }: {
     label?: string;
     optionData: Array<string>;
     className?: string;
+    disable?: boolean;
     onChange: (selection: string) => void;
-    bgTheme?: string;
     defaultSelection?: string;
 }) {
     const [selection, setSelection] = useState(defaultSelection || optionData[0]);
     const [openOption, setOpenOption] = useState(false);
 
     useEffect(() => {
-        onChange(selection);
-    }, [selection]);
+        if (defaultSelection) setSelection(defaultSelection);
+    }, [defaultSelection]);
+
+    useEffect(() => {
+        onChange(disable ? '' : selection);
+    }, [selection, disable]);
 
     const handleChooseSelection = (event: React.MouseEvent, selection: string) => {
         event.stopPropagation();
@@ -32,7 +36,7 @@ export default function Selection({
     return (
         <div
             className={'relative px-[18px] py-[8px] cursor-pointer w-[250px] ' + className}
-            onClick={() => setOpenOption((prev) => !prev)}
+            onClick={() => !disable && setOpenOption((prev) => !prev)}
         >
             <div className="truncate">
                 {label ? label + ':' : ''} <span>{selection}</span>
