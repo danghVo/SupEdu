@@ -1,12 +1,11 @@
-import { SyntheticEvent, use, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import Calendar from '~/components/Calendar';
+import { useLayoutEffect, useRef, useState } from 'react';
+import { AnimatePresence, motion } from 'framer-motion';
+
 import { TimeData, hour, minute } from '~/constant';
-import { AnimatePresence, PanInfo, motion } from 'framer-motion';
-import './TimeSetterBox.scss';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCaretLeft, faCaretRight } from '@fortawesome/free-solid-svg-icons';
 import Button from '~/components/Button';
 import TimePicker from '~/components/TimePicker';
+import './TimeSetterBox.scss';
+import Calendar from '~/components/Calendar';
 
 interface SetTimeModalProps {
     label: string;
@@ -65,15 +64,21 @@ export default function TimeSetterBox({
     const handleChooseDay = (date: string | null) => {
         if (date) {
             const currentDate = new Date(Date.now()).getDate();
+            const currentMotnh = new Date(Date.now()).getMonth() + 1;
+            const currentYear = new Date(Date.now()).getFullYear();
 
-            if (currentDate > parseInt(date)) {
-                setError('Không thể đặt thời gian trong quá khứ');
-            } else {
+            if (
+                currentYear < parseInt(date.split('/')[2]) ||
+                currentMotnh < parseInt(date.split('/')[1]) ||
+                currentDate <= parseInt(date.split('/')[0])
+            ) {
                 setTimeSetterData((prev) => ({
                     ...prev,
-                    date,
+                    date: `${date.split('/')[0]}/${date.split('/')[1]}/${date.split('/')[2]}`,
                 }));
                 setError('');
+            } else {
+                setError('Không thể đặt thời gian trong quá khứ');
             }
         }
     };
@@ -111,13 +116,6 @@ export default function TimeSetterBox({
         const currentDate = now.getDate();
         const currentHour = now.getHours();
 
-        console.log(
-            currentDate,
-            parseInt(timeSetterData.date),
-            currentHour,
-            time,
-            parseInt(timeSetterData.time.split(':')[1]),
-        );
         if (currentDate === parseInt(timeSetterData.date) && currentHour > time) {
             setError('Không thể đặt thời gian trong quá khứ');
         } else {
