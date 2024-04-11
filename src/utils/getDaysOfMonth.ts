@@ -2,6 +2,7 @@ interface datesOfMonth
     extends Array<{
         day: number;
         date: number;
+        year: number;
         month: number;
     }> {}
 
@@ -15,6 +16,7 @@ export default function getDaysOfMonth(month: number, year: number) {
         day: firstDayOfMonth.getDay(),
         date: firstDayOfMonth.getDate(),
         month,
+        year,
     };
 
     let datesOfMonth = days.fill(0).map((item, index) => {
@@ -23,6 +25,7 @@ export default function getDaysOfMonth(month: number, year: number) {
                 day: prevDay.day === 6 ? 0 : prevDay.day + 1,
                 date: prevDay.date + 1,
                 month,
+                year,
             };
         }
 
@@ -50,11 +53,12 @@ const fillPreDayList = (lastDayOfPrevMonth: Date, datesOfMonth: datesOfMonth) =>
         day: lastDayOfPrevMonth.getDay(),
         date: lastDayOfPrevMonth.getDate(),
         month,
+        year: lastDayOfPrevMonth.getFullYear(),
     };
 
     while (tempDay.day >= 0) {
         datesOfMonth.unshift(tempDay);
-        tempDay = { day: tempDay.day - 1, date: tempDay.date - 1, month };
+        tempDay = { day: tempDay.day - 1, date: tempDay.date - 1, month, year: tempDay.year };
     }
 
     return datesOfMonth;
@@ -65,12 +69,13 @@ const fillPostDayList = (firstDayOfNextMonth: Date, datesOfMonth: datesOfMonth) 
     let tempDay = {
         day: firstDayOfNextMonth.getDay(),
         date: firstDayOfNextMonth.getDate(),
+        year: firstDayOfNextMonth.getFullYear(),
         month,
     };
 
     while (tempDay.day <= 6) {
         datesOfMonth.push(tempDay);
-        tempDay = { day: tempDay.day + 1, date: tempDay.date + 1, month };
+        tempDay = { day: tempDay.day + 1, date: tempDay.date + 1, month, year: tempDay.year };
     }
 
     return datesOfMonth;
