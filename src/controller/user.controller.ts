@@ -8,10 +8,6 @@ export class UserController {
 
         if (res.data.hasOwnProperty('access_token')) {
             window.localStorage.setItem('token', res.data['access_token']);
-
-            const profile = await this.profile();
-
-            return profile;
         }
 
         return res.data;
@@ -21,6 +17,14 @@ export class UserController {
         const auth = new AuthService();
 
         const res = await auth.signUp(payload);
+
+        return res.data;
+    }
+
+    async logOut(uuid: string) {
+        const auth = new AuthService();
+
+        const res = await auth.logOut(uuid);
 
         return res.data;
     }
@@ -41,19 +45,27 @@ export class UserController {
         return res.data;
     }
 
-    // async getUsers(req: any, res: any) {
-    //     // Your code here
-    // }
-    // async getUser(req, res) {
-    //     // Your code here
-    // }
-    // async createUser(req, res) {
-    //     // Your code here
-    // }
-    // async updateUser(req, res) {
-    //     // Your code here
-    // }
-    // async deleteUser(req, res) {
-    //     // Your code here
-    // }
+    async updateProfile(payload: any) {
+        const user = new UserService();
+
+        const res = await user.updateProfile(payload);
+
+        return res.data;
+    }
+
+    async getUuid(email: string) {
+        const user = new UserService();
+
+        const res = await user.getUuid(email);
+
+        return res.data;
+    }
+
+    async changePassword(oldPassword: string, newPassword: string, confirmPassword: string) {
+        const user = new UserService();
+
+        const res = await user.changePassword(oldPassword, newPassword, confirmPassword);
+
+        return res.data;
+    }
 }
