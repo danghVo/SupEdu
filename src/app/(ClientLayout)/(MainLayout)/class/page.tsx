@@ -1,6 +1,5 @@
 'use client';
 
-import image from '~/assets/image';
 import ClassItem from './components/classItem';
 import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import Selection from '~/components/Selection';
@@ -74,7 +73,7 @@ export default function Page() {
         let filter = '';
 
         if (filterName === 'Sở hữu') {
-            filter = 'owner';
+            filter = 'own';
         } else if (filterName === 'Đang tham gia') {
             filter = 'join';
         } else if (filterName === 'Chờ xác nhận') {

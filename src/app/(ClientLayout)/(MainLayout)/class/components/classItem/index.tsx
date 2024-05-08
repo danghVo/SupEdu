@@ -7,7 +7,6 @@ import { AnimatePresence, motion } from 'framer-motion';
 
 import SimpleBarReact from 'simplebar-react';
 import 'simplebar-react/dist/simplebar.min.css';
-import images from '~/assets/image';
 
 export interface classItem {
     id: number;
@@ -53,7 +52,7 @@ export default function ClassItem({ classItem }: { classItem: classItem }) {
 
                 <div className="w-full h-full flex flex-col items-center px-[12px] justify-center translate-y-[-18px] contrast-100">
                     <Image
-                        src={classItem.owner.avatar || images.teacher}
+                        src={classItem.owner.avatar || '/image/teacher.png'}
                         alt="teacher avatar"
                         className="bg-white rounded-full p-2 border-4 border-white border-solid mb-[4px]"
                         width={70}

@@ -5,7 +5,7 @@ import BarChart from '~/components/BarChart';
 import { useClass } from '~/hooks';
 import useSubmits from '~/hooks/useSubmits';
 
-export default function page({
+export default function Page({
     params: { classUuid, exerciseId },
 }: {
     params: { classUuid: string; exerciseId: string };

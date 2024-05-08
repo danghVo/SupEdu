@@ -28,18 +28,27 @@ export default function Vote({
     edit,
     voteData,
     onChange,
+    error,
+    onError = (error: string) => {},
 }: {
     expireTime?: TimeData | undefined;
     classUuid: string;
     edit: boolean;
+    error: string;
+    onError: (error: string) => void;
     voteData: VoteData | null;
     onChange: (voteDate: VoteData) => void;
 }) {
     const [options, setOptions] = useState<Array<VoteItem>>([{ value: '' }, { value: '' }]);
-    const [error, setError] = useState('');
     const { data: voteChosen, isSuccess, isRefetching, refetch } = useVote(voteData?.uuid);
     const { data: classData, isSuccess: isClassSuccess } = useClass(classUuid);
     const queryClient = useQueryClient();
+
+    useEffect(() => {
+        if (voteData) {
+            setOptions(voteData.options);
+        }
+    }, []);
 
     useEffect(() => {
         if (voteData?.uuid) {
@@ -60,13 +69,7 @@ export default function Vote({
     }, [voteData?.uuid]);
 
     useEffect(() => {
-        if (voteData) {
-            setOptions(voteData.options);
-        }
-    }, []);
-
-    useEffect(() => {
-        if (!error && edit) {
+        if (edit) {
             onChange({
                 uuid: voteData?.uuid,
                 options,
@@ -78,9 +81,9 @@ export default function Vote({
         const value = e.target.value;
 
         if (options.find((item) => item.value === value)) {
-            setError('Không được có lựa chọn trùng nhau');
+            onError('Không được có lựa chọn trùng nhau');
         } else if (error) {
-            setError('');
+            onError('');
         }
 
         options[index] = {
@@ -99,7 +102,7 @@ export default function Vote({
         if (options.length > 2) {
             setOptions((prev) => prev.filter((item, index) => index !== removedIndex));
         } else {
-            setError('Không được có ít hơn 2 lựa chọn');
+            onError('Không được có ít hơn 2 lựa chọn');
         }
     };
 
@@ -153,7 +156,7 @@ export default function Vote({
             {error && (
                 <div className="text-red-600 my-[12px] mx-[12px] flex justify-between items-center  ">
                     {error}
-                    <FontAwesomeIcon icon={faXmark} onClick={() => setError('')} className="mr-[16px] cursor-pointer" />
+                    <FontAwesomeIcon icon={faXmark} onClick={() => onError('')} className="mr-[16px] cursor-pointer" />
                 </div>
             )}
             {!edit && (

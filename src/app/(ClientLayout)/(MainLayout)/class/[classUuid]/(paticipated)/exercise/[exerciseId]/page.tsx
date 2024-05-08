@@ -10,35 +10,28 @@ import { useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 import { io } from 'socket.io-client';
 
-import { useExercise, useFile, useClass } from '~/hooks';
+import { useExercise, useFile, useClass, usePost } from '~/hooks';
 import Button from '~/components/Button';
 import InputFile from '~/components/Input/InputFile';
 import PostCard, { PostData } from '~/components/PostCard';
 import TextEditor from '~/components/TextEditor';
 import colorLevel from '~/components/TextEditor/utils/colorLevel';
 import checkTimeExprire from '~/components/TextEditor/utils/checkTimeExpire';
-import ConfirmModal from '~/components/Modal/ConfirmModal';
 import { PostController } from '~/controller';
 import { NotificationTheme } from '~/app/(ClientLayout)/(MainLayout)/layout';
 import { NotificationType } from '~/components/Notification';
-
-interface ExerciseDetailData extends PostData {
-    score: string | number | null;
-    feedback: RawDraftContentState | null;
-}
 
 export default function Page({
     params: { exerciseId, classUuid },
 }: {
     params: { exerciseId: string; classUuid: string };
-    exercise?: ExerciseDetailData;
 }) {
     const { data: exercise, isSuccess: isExerciseSuccess, refetch } = useExercise(exerciseId);
     const { data: classData, isSuccess: isClassSuccess } = useClass(classUuid);
-    const { files, fileBuffers, setAddFile, setRemoveFile, setInitFiles } = useFile();
+    const {refetch: refetchPost} = usePost(classUuid);
+    const { files, fileBuffers, setAddFile, setRemoveFile, setInitFiles, setClearFiles } = useFile();
     const [isEdit, setIsEdit] = useState(true);
     const [isLoadingFile, setIsLoadingFile] = useState(false);
-    const [openConfirmModal, setOpenConfirmModal] = useState(false);
     const queryClient = useQueryClient();
     const router = useRouter();
     const notificationShow = useContext(NotificationTheme);
@@ -74,42 +67,39 @@ export default function Page({
     }, [isExerciseSuccess, isClassSuccess]);
 
     const hanldeSubmit = async () => {
-        if (isEdit) {
-            setIsLoadingFile(true);
-            const postController = new PostController();
+        if (exercise.assignment.timeAssign.date && !isEdit) {
+            setIsEdit(true);
+            return;
+        }
 
-            const now = new Date(Date.now()).toISOString();
-            const date = now.split('T')[0].split('-').reverse().join('/');
-            const time = now.split('T')[1].split(':').slice(0, 2).join(':');
+        setIsLoadingFile(true);
+        setIsEdit(false);
+        const postController = new PostController();
 
-            const payload = {
-                uuid: exercise.assignment.uuid,
-                timeAssign: {
-                    date,
-                    time,
-                },
-                files: fileBuffers,
-            };
+        const now = new Date(Date.now()).toISOString();
+        const date = now.split('T')[0].split('-').reverse().join('/');
+        const time = now.split('T')[1].split(':').slice(0, 2).join(':');
 
-            const data = await queryClient.fetchQuery({
-                queryKey: ['submitExercise', { classUuid, exerciseId }],
-                queryFn: () => postController.submitExercise(exerciseId, payload),
-            });
+        const payload = {
+            uuid: exercise.assignment.uuid,
+            timeAssign: {
+                date,
+                time,
+            },
+            files: fileBuffers,
+        };
 
-            if (!data.error) {
-                refetch();
-                notificationShow('Nộp bài thành công', NotificationType.success);
-                setIsLoadingFile(false);
-                return true;
-            } else {
-                notificationShow(data.error, NotificationType.error);
+        const data = await postController.submitExercise(exerciseId, payload);
 
-                return false;
-            }
-
-            // cancel submit
+        if (!data.error) {
+            refetch();
+            notificationShow('Nộp bài thành công', NotificationType.success);
+            setIsLoadingFile(false);
+            return true;
         } else {
-            setOpenConfirmModal(true);
+            notificationShow(data.error, NotificationType.error);
+
+            return false;
         }
     };
 
@@ -117,6 +107,7 @@ export default function Page({
         if (isSuccess) {
             router.push(`/class/${classUuid}/exercise`);
             refetch();
+            refetchPost();
             notificationShow('Xóa bài tập thành công', NotificationType.success);
             queryClient.invalidateQueries({
                 queryKey: ['calendar', classUuid],
@@ -197,9 +188,11 @@ export default function Page({
                                                     className={`border-2 w-full h-[50px] px-[12px] flex items-center rounded-lg my-[12px]`}
                                                 >
                                                     <Image
-                                                        src={require(`~/assets/extension/${file.extension}.png`)}
+                                                        src={`/extension/${file.extension}.png`}
                                                         className="bg-contain w-fit max-h-full py-[8px] pr-[8px]"
                                                         alt="file-type"
+                                                        width={20}
+                                                        height={50}
                                                     />
                                                     <a
                                                         href={file.path}
@@ -222,7 +215,7 @@ export default function Page({
                                         </div>
                                     )}
 
-                                    {isEdit && (
+                                    {checkTimeExprire(exercise.timeTaskEnd!.time, exercise.timeTaskEnd!.date) ? <div className='text-center text-red-500 font-bold py-[12px]'>Hết hạn nộp bài</div> :isEdit && (
                                         <InputFile onChange={setAddFile}>
                                             <Button className="w-full rounded-lg mt-[16px]" handleClick={() => {}}>
                                                 Thêm tập tin
@@ -233,11 +226,25 @@ export default function Page({
                                         <Button
                                             handleClick={hanldeSubmit}
                                             theme="fill"
+                                            disabled={fileBuffers.length === 0 && isEdit}
                                             className={`w-full rounded-lg mt-[8px] ${isLoadingFile ? 'opacity-80' : ''} ${checkTimeExprire(exercise.timeTaskEnd!.time, exercise.timeTaskEnd!.date) || files.length === 0 ? 'opacity-50 pointer-events-none' : ''}`}
                                         >
-                                            {exercise.assignment.timeAssign.date ? 'Hủy nộp bài' : 'Nộp bài'}
+                                            {exercise.assignment.timeAssign.date
+                                                ? isEdit
+                                                    ? 'Lưu'
+                                                    : 'Chỉnh sửa'
+                                                : 'Nộp bài'}
                                         </Button>
                                     )}
+
+                                    {isEdit && 
+                                        <Button
+                                        handleClick={() => { setIsEdit(false); setClearFiles(); }}
+                                        className={`w-full rounded-lg mt-[8px] ${isLoadingFile ? 'opacity-80' : ''}`}
+                                            >
+                                                Hủy
+                                            </Button>
+                                    }
                                 </div>
 
                                 {exercise.assignment.feedback && (
@@ -258,14 +265,6 @@ export default function Page({
                         )}
                     </div>
                 </motion.div>
-
-                {openConfirmModal && (
-                    <ConfirmModal
-                        title="Bạn có chắc chắn muốn hủy nộp bài không ?"
-                        handleYes={() => setIsEdit(true)}
-                        handleCloseModal={() => setOpenConfirmModal(false)}
-                    />
-                )}
             </>
         )
     );

@@ -30,12 +30,10 @@ export default function MemberScoreCard({
     classUuid,
     infor,
     submitUuid,
-    isExpired,
     refetch,
 }: {
     classUuid: string;
     refetch: any;
-    isExpired: boolean;
     submitUuid: string;
     infor: MemberScoreInfor;
 }) {
@@ -85,26 +83,25 @@ export default function MemberScoreCard({
                                 <span className={`font-medium ${colorLevel(infor.score)}`}>{infor.score}</span>
                                 /100
                             </div>
-                            {isExpired ||
-                                (infor.isMarked && (
-                                    <Button
-                                        handleClick={() => {
-                                            setOpenMarkScore(true);
-                                        }}
-                                        className="rounded-lg  ml-[12px]"
-                                        theme="fill"
-                                    >
-                                        {loading ? (
-                                            <motion.div animate={{ rotate: '360' }} transition={{ repeat: Infinity }}>
-                                                <FontAwesomeIcon icon={faCircleNotch} />
-                                            </motion.div>
-                                        ) : infor.isMarked ? (
-                                            'Sửa đổi'
-                                        ) : (
-                                            'Chấm điểm'
-                                        )}
-                                    </Button>
-                                ))}
+                            {typeof infor.isMarked === 'boolean' && (
+                                <Button
+                                    handleClick={() => {
+                                        setOpenMarkScore(true);
+                                    }}
+                                    className="rounded-lg  ml-[12px]"
+                                    theme="fill"
+                                >
+                                    {loading ? (
+                                        <motion.div animate={{ rotate: '360' }} transition={{ repeat: Infinity }}>
+                                            <FontAwesomeIcon icon={faCircleNotch} />
+                                        </motion.div>
+                                    ) : infor.isMarked ? (
+                                        'Sửa đổi'
+                                    ) : (
+                                        'Chấm điểm'
+                                    )}
+                                </Button>
+                            )}
                         </div>
                         {infor.timeAssign.time && (
                             <div

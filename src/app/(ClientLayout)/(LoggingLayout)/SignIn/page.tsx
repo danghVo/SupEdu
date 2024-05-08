@@ -5,7 +5,6 @@ import Link from 'next/link';
 
 import Input from '~/components/Input';
 import Form from '~/components/Form';
-import image from '~/assets/image';
 import { UserController } from '~/controller';
 import { useState } from 'react';
 import { requiredRule } from '~/components/Input/rules';
@@ -46,7 +45,7 @@ export default function Page() {
 
     return (
         <div className="shadow-custom-3 flex overflow-hidden h-[80vh] w-[1200px] rounded-[50px] bg-[rgb( 225, 230, 220)]/[.1]">
-            <Image src={image.signIn} className="w-[50%]" alt="background" />
+            <Image src="/image/SignIn.png" width={600} height={600} alt="background" />
             <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}

@@ -7,6 +7,7 @@ import { requiredRule } from '~/components/Input/rules';
 import Modal from '~/components/Modal';
 import InputCheckbox from '~/components/Input/InputCheckbox';
 import Selection from '~/components/Selection';
+import Loading from '~/components/Loading';
 
 export interface FormData {
     name: string;
@@ -17,6 +18,7 @@ export interface FormData {
         to: string;
         from: string;
     };
+    showPassword?: string;
     textColor: string;
     background?: string;
 }
@@ -38,7 +40,7 @@ export default function CreateClassModal({
     const [formData, setFormData] = useState<FormData>({
         name: initFormData?.name || '',
         description: initFormData?.description || '',
-        password: initFormData?.password || '',
+        password: initFormData?.showPassword || '',
         requireApprove: initFormData?.requireApprove || false,
         theme: initFormData?.theme || {
             from: '#000000',
@@ -55,8 +57,15 @@ export default function CreateClassModal({
 
     return (
         <Modal handleCloseModal={handleCloseModal} height={'h-fit'} width={'w-fit'}>
-            <Form handleSubmit={() => handleSubmitForm()} submit={{ content: 'Lưu', custom: 'mt-[16px]' }}>
-                <div className="px-[16px] py-[18px] flex flex-col gap-[16px]">
+            <Form
+                handleSubmit={() => handleSubmitForm()}
+                submit={{
+                    content: loading ? <Loading className="text-[32px]" /> : 'Lưu',
+                    custom: 'mt-[16px] mx-0',
+                    loading,
+                }}
+            >
+                <div className="px-[16px] pt-[8px] flex flex-col gap-[16px]">
                     <div className="text-center text-[24px] font-bold mb-[8px]">Thông tin</div>
                     <Input
                         label="Tên lớp"

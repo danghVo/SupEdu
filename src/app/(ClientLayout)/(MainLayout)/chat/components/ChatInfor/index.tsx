@@ -11,7 +11,6 @@ import { usePathname } from 'next/navigation';
 import { io } from 'socket.io-client';
 import { useRouter } from 'next/navigation';
 
-import image from '~/assets/image';
 import Search from '~/components/Search';
 import Input from '~/components/Input';
 import { useChatInfor, useProfile } from '~/hooks';
@@ -88,15 +87,15 @@ export default function ChatInfor() {
                                     profile.avatar !== null
                                         ? profile.avatar
                                         : profile.role === 'TEACHER'
-                                          ? image.teacher
-                                          : image.student
+                                          ? "/image/teacher.png"
+                                          : "/image/student.png"
                                 }
                                 width={50}
                                 height={50}
                                 alt={'avatar'}
                                 className="rounded-full"
                             />
-                            <div className="text-[24px] font-bold">{profile.name}</div>
+                            <div className="text-[24px] font-bold line-clamp-1">{profile.name}</div>
                         </>
                     )}
                 </div>
@@ -185,8 +184,8 @@ export default function ChatInfor() {
                                                 item.avatar !== null
                                                     ? item.avatar
                                                     : item.role === 'TEACHER'
-                                                      ? image.teacher
-                                                      : image.student
+                                                      ? "/image/teacher.png"
+                                                      : "/image/student.png"
                                             }
                                             width={50}
                                             height={50}

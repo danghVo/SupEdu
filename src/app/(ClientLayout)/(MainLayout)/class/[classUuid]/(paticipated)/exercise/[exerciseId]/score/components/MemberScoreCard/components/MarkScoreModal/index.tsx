@@ -44,7 +44,7 @@ export default function MarkScoreModal({
                         onBlur={handleBlurScore}
                         value={score}
                         onChange={handleInputScore}
-                        classNameWrapper="rounded-xl w-[50px] h-[30px]"
+                        classNameWrapper="rounded-xl w-[50px] h-[24px]"
                         className="text-center pl-0 pr-0"
                         reset={false}
                     />

@@ -13,7 +13,9 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
     title: 'SupEdu',
+    
     description: 'Support Education System',
+    icons: "/image/icon.png",
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {

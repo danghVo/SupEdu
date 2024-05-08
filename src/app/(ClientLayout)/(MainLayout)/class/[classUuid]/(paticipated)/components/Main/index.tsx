@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import React, { MouseEvent, useContext, useEffect, useRef, useState } from 'react';
+import React, { createContext, MouseEvent, useContext, useEffect, useRef, useState } from 'react';
 import { classDetailSections } from '~/constant';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCaretLeft, faPen } from '@fortawesome/free-solid-svg-icons';
@@ -20,6 +20,8 @@ import ConfirmModal from '~/components/Modal/ConfirmModal';
 import Button from '~/components/Button';
 import { ClassController } from '~/controller';
 
+export const ScrollTheme = createContext<() => void>(() => {});
+
 export default function Main({ classUuid, children }: { classUuid: string; children: React.ReactNode }) {
     const pathName = usePathname();
     const [currentSection, setCurrentSection] = useState(
@@ -35,6 +37,7 @@ export default function Main({ classUuid, children }: { classUuid: string; child
     const notificationShow = useContext(NotificationTheme);
 
     const wrapperRef = useRef<HTMLDivElement | null>(null);
+    const scrollRef = useRef<any>(null);
 
     useEffect(() => {
         const pathSection = pathName.split('/')[3];
@@ -104,77 +107,88 @@ export default function Main({ classUuid, children }: { classUuid: string; child
         }
     };
 
+    const handleScrollTop = () => {
+        if (scrollRef.current) {
+            scrollRef.current.scrollTop = 0;
+        }
+    };
+
     return isClassSuccess ? (
         <>
-            <SimpleBarReact
+            <div
+                className="h-screen flex-col flex p-[32px] pt-[32px] grow"
+                ref={wrapperRef}
                 style={{
-                    maxHeight: '100vh',
                     backgroundImage: `linear-gradient(to bottom, ${classData.theme.from}, ${classData.theme.to})`,
                 }}
-                classNames={{ track: 'simplebar-track mr-2' }}
-                forceVisible="y"
-                className="grow z-[800]"
             >
-                <div className="min-h-screen flex-col flex p-[32px] pt-[32px]" ref={wrapperRef}>
-                    <div style={{ color: classData.textColor }}>
-                        <div className="flex justify-between items-center mb-[28px]">
-                            <div className="font-bold flex items-center justify-between text-[32px]">
+                <div style={{ color: classData.textColor }}>
+                    <div className="flex justify-between items-center mb-[28px]">
+                        <div className="font-bold flex items-center justify-between text-[32px]">
+                            <div
+                                onClick={() => {
+                                    router.push('/class');
+                                    queryClient.removeQueries({ queryKey: ['class', classUuid] });
+                                }}
+                                className="cursor-pointer mr-[12px]"
+                            >
+                                <FontAwesomeIcon icon={faCaretLeft} />
+                            </div>
+                            <div>{classData.name}</div>
+                            {classData.isOwner && (
                                 <div
-                                    onClick={() => {
-                                        router.push('/class');
-                                        queryClient.removeQueries({ queryKey: ['class', classUuid] });
-                                    }}
-                                    className="cursor-pointer mr-[12px]"
+                                    onClick={() => setOpenEditModal(true)}
+                                    className="text-[24px] ml-[16px] cursor-pointer"
                                 >
-                                    <FontAwesomeIcon icon={faCaretLeft} />
+                                    <FontAwesomeIcon icon={faPen} />
                                 </div>
-                                <div>{classData.name}</div>
-                                {classData.isOwner && (
-                                    <div
-                                        onClick={() => setOpenEditModal(true)}
-                                        className="text-[24px] ml-[16px] cursor-pointer"
-                                    >
-                                        <FontAwesomeIcon icon={faPen} />
-                                    </div>
-                                )}
-                            </div>
-                            <div className="mr-[64px]">
-                                <Button
-                                    className="rounded-lg bg-red-700 text-white w-[100px] shadow-custom-1"
-                                    theme=""
-                                    handleClick={() => setOpenConfirmModal(true)}
-                                >
-                                    {classData.isOwner ? 'Xóa' : 'Thoát'}
-                                </Button>
-                            </div>
+                            )}
                         </div>
-                        <div className="flex items-center gap-[32px] mb-[12px] ml-[8px]">
-                            {classDetailSections.map((section, index) => (
-                                <Link
-                                    key={index}
-                                    href={`/class/${classUuid}/` + section.path}
-                                    onClick={(event) => handleChangeSection(event, section.name)}
-                                    className={`text-[18px] font-semibold cursor-pointer px-[12px] py-[8px] relative ${
-                                        section.name === currentSection.name ? 'text-white' : ''
-                                    }`}
-                                >
-                                    {currentSection.name === section.name && (
-                                        <motion.div
-                                            id="section-animation"
-                                            initial={sectionAnimation}
-                                            animate={{ x: 0 }}
-                                            className="bg-[var(--text-color)] absolute top-0 left-0 h-full w-full rounded-full"
-                                        ></motion.div>
-                                    )}
-                                    <span className="relative z-20">{section.name}</span>
-                                </Link>
-                            ))}
+                        <div className="mr-[64px]">
+                            <Button
+                                className="rounded-lg bg-red-700 text-white w-[100px] shadow-custom-1"
+                                theme=""
+                                handleClick={() => setOpenConfirmModal(true)}
+                            >
+                                {classData.isOwner ? 'Xóa' : 'Thoát'}
+                            </Button>
                         </div>
                     </div>
-
-                    <div className="grow mt-[28px] relative">{children}</div>
+                    <div className="flex items-center gap-[32px] mb-[12px] ml-[8px]">
+                        {classDetailSections.map((section, index) => (
+                            <Link
+                                key={index}
+                                href={`/class/${classUuid}/` + section.path}
+                                onClick={(event) => handleChangeSection(event, section.name)}
+                                className={`text-[18px] font-semibold cursor-pointer px-[12px] py-[8px] relative ${
+                                    section.name === currentSection.name ? 'text-white' : ''
+                                }`}
+                            >
+                                {currentSection.name === section.name && (
+                                    <motion.div
+                                        id="section-animation"
+                                        initial={sectionAnimation}
+                                        animate={{ x: 0 }}
+                                        className="bg-[var(--text-color)] absolute top-0 left-0 h-full w-full rounded-full"
+                                    ></motion.div>
+                                )}
+                                <span className="relative z-20">{section.name}</span>
+                            </Link>
+                        ))}
+                    </div>
                 </div>
-            </SimpleBarReact>
+                <SimpleBarReact
+                    scrollableNodeProps={{ ref: scrollRef }}
+                    style={{
+                        height: 'calc(100vh - 192px)',
+                    }}
+                    classNames={{ track: 'mr-2 bg-transparent', visible: 'invisible' }}
+                    forceVisible="y"
+                    className="grow mt-[28px]"
+                >
+                    <ScrollTheme.Provider value={handleScrollTop}>{children}</ScrollTheme.Provider>
+                </SimpleBarReact>
+            </div>
 
             {openConfirmModal && (
                 <ConfirmModal

@@ -4,18 +4,23 @@ import { PostController } from '~/controller';
 export default function useVote(postUuid: string | undefined) {
     const postController = new PostController();
 
-    if (!postUuid) {
-        return {
+    // if (!postUuid) {
+    //     
+    // }
+
+    return useQuery({
+        queryKey: ['vote', postUuid],
+        queryFn: () => {
+            if (postUuid) {
+                return postController.getVote(postUuid)
+            }
+            else return {
             data: null,
             isSuccess: false,
             isRefetching: false,
             refetch: null,
         };
-    }
-
-    return useQuery({
-        queryKey: ['vote', postUuid],
-        queryFn: () => postController.getVote(postUuid),
+        },
         staleTime: Infinity,
     });
 }

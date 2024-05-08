@@ -1,9 +1,11 @@
 import { faUserPlus } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import {motion } from 'framer-motion';
 
 import Button from '~/components/Button';
 import Input from '~/components/Input';
+import emailRule from '~/components/Input/rules/emailRule';
 import Modal from '~/components/Modal';
 
 export default function AddMember({
@@ -16,8 +18,19 @@ export default function AddMember({
     const [openAddModal, setOpenAddModal] = useState(false);
     const [emailMember, setEmailMember] = useState('');
     const [error, setError] = useState<String>('');
+    const [copied, setCopied] = useState(false);
+
+    useEffect(() => {
+        if (copied) {
+            setTimeout(() => {
+                setCopied(false);
+            
+            }, 2000)
+        }
+    }, [copied])
 
     const handleCopyLinkToClipBoard = () => {
+        setCopied(true);
         window.navigator.clipboard.writeText(link);
     };
 
@@ -66,6 +79,7 @@ export default function AddMember({
                             <Input
                                 classNameWrapper="mt-0 rounded-lg h-[40px] px-[8px]"
                                 value={emailMember}
+                                rules={[emailRule]}
                                 onChange={setEmailMember}
                             />
                             {emailMember && (
@@ -77,10 +91,18 @@ export default function AddMember({
 
                         <div className="flex items-center">
                             <div className="mx-[8px]">Hoặc</div>
-                            <div className="bg-white rounded-lg w-[400px] h-[40px] flex justify-between items-center">
+                            <div className="relative bg-white rounded-lg w-[400px] h-[40px] flex justify-between items-center">
                                 <div className="ml-[12px] border-2 border-r-0 border-black h-full rounded-l-lg flex items-center px-[12px] overflow-hidden">
                                     <span className="truncate">{link}</span>
                                 </div>
+                                <motion.div
+                                    initial={{ opacity: 0, y: -1 }}
+                                    animate={copied ? { opacity: 1, y: 1 } : { opacity: 0, y: -1 }}
+                                    className='absolute right-[24px] top-[-110%] bg-black text-white text-[12px] p-[8px] rounded-lg 
+                                                after:content-[""] after:absolute after:top-[99%] after:right-[50%] after:translate-x-1/2 after:block after:w-[0px] after:h-[0px] after:border-[8px] after:border-solid after:border-transparent after:border-t-black
+                                                '>
+                                    Copied
+                                </motion.div>
                                 <Button
                                     handleClick={handleCopyLinkToClipBoard}
                                     className="rounded-none rounded-r-lg w-[200px]"

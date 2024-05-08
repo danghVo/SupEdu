@@ -28,7 +28,6 @@ export default function Member({ params: { classUuid } }: { params: { classUuid:
         userUuid: '',
     });
     const [currentFilter, setCurrentFilter] = useState('Đã tham gia');
-    const queryClient = useQueryClient();
     const notificationShow = useContext(NotificationTheme);
 
     useEffect(() => {
@@ -120,10 +119,15 @@ export default function Member({ params: { classUuid } }: { params: { classUuid:
         isClassSuccess &&
         membersShow && (
             <>
-                <div className="mt-[-16px]">
-                    {classData.isOwner && (
-                        <AddMember handleSubmit={handleAddMember} link={`http://localhost:3000/class/${classUuid}`} />
-                    )}
+                <div className="relative">
+                    <div className="sticky top-[16px] z-[99]">
+                        {classData.isOwner && (
+                            <AddMember
+                                handleSubmit={handleAddMember}
+                                link={`http://localhost:3000/class/${classUuid}`}
+                            />
+                        )}
+                    </div>
 
                     <div className="flex flex-col items-center justify-center mb-[32px]">
                         <div

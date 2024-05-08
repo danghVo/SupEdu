@@ -15,7 +15,7 @@ export default function ExerciseNav({ classUuid, exerciseId }: { classUuid: stri
     return (
         isClassSuccess &&
         isProfileSuccess && (
-            <div className="flex items-center gap-[16px] mb-[32px] mt-[-16px]">
+            <div className={`flex items-center gap-[16px] mb-[32px] sticky top-0 z-[99] px-[16px] pt-[8px] pb-[12px]`}>
                 <Link
                     href={`/class/${classUuid}/exercise`}
                     className="w-[40px] h-[40px] bg-white shadow-custom-1 flex items-center justify-center rounded-full cursor-pointer"
@@ -26,19 +26,19 @@ export default function ExerciseNav({ classUuid, exerciseId }: { classUuid: stri
                     <>
                         <Link
                             href={`/class/${classUuid}/exercise/${exerciseId}`}
-                            className={`w-[40px] h-[40px] bg-white shadow-custom-1 flex items-center justify-center rounded-full cursor-pointer ${pathName.length === 5 ? '' : 'opacity-60'}`}
+                            className={`w-[40px] h-[40px] bg-white shadow-custom-1 flex items-center justify-center rounded-full cursor-pointer ${pathName.length === 5 ? '' : 'opacity-40'}`}
                         >
                             <FontAwesomeIcon icon={faInbox} />
                         </Link>
                         <Link
                             href={`/class/${classUuid}/exercise/${exerciseId}/score`}
-                            className={`w-[40px] h-[40px] bg-white shadow-custom-1 flex items-center justify-center rounded-full cursor-pointer ${pathName[pathName.length - 1] === 'score' ? '' : 'opacity-60'}`}
+                            className={`w-[40px] h-[40px] bg-white shadow-custom-1 flex items-center justify-center rounded-full cursor-pointer ${pathName[pathName.length - 1] === 'score' ? '' : 'opacity-40'}`}
                         >
                             <FontAwesomeIcon icon={faPenToSquare} />
                         </Link>
                         <Link
                             href={`/class/${classUuid}/exercise/${exerciseId}/statistic`}
-                            className={`w-[40px] h-[40px] bg-white shadow-custom-1 flex items-center justify-center rounded-full cursor-pointer ${pathName[pathName.length - 1] === 'statistic' ? '' : 'opacity-60'}`}
+                            className={`w-[40px] h-[40px] bg-white shadow-custom-1 flex items-center justify-center rounded-full cursor-pointer ${pathName[pathName.length - 1] === 'statistic' ? '' : 'opacity-40'}`}
                         >
                             <FontAwesomeIcon icon={faChartColumn} />
                         </Link>

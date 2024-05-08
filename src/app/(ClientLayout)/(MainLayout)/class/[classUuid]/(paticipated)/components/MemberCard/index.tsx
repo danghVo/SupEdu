@@ -1,6 +1,6 @@
 import Image from 'next/image';
+import Avatar from '~/components/Avatar';
 
-import image from '~/assets/image';
 import { roleTranslate } from '~/constant';
 
 export interface MemberCardInfor {
@@ -26,7 +26,7 @@ export default function MemberCard({
             <div className="flex items-center">
                 <Image
                     src={
-                        infor.avatar !== null ? infor.avatar : infor.role === 'TEACHER' ? image.teacher : image.student
+                        infor.avatar !== null ? infor.avatar : infor.role === 'TEACHER' ? "/image/teacher.png" : "/image/student.png"
                     }
                     width={32}
                     height={32}

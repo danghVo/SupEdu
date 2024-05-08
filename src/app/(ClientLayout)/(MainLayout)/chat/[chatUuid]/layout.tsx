@@ -16,7 +16,7 @@ export async function generateStaticParams() {
     }
 }
 
-export default function layout({
+export default function Layout({
     children,
     params: { chatUuid },
 }: {

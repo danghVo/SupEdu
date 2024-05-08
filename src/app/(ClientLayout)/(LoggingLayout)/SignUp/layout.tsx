@@ -4,7 +4,6 @@ import { motion } from 'framer-motion';
 import { useEffect, useMemo, useRef, useState, useContext, createContext } from 'react';
 import React from 'react';
 
-import image from '~/assets/image';
 import Link from 'next/link';
 
 export const FormController = createContext({
@@ -31,7 +30,7 @@ export default function Layout(props: {
         confirmPassword: '',
         name: '',
         age: 20,
-        role: 'TEACHER',
+        role: '',
     });
 
     const handleBackward = (formIndex?: number) => {
@@ -56,7 +55,7 @@ export default function Layout(props: {
 
     return (
         <div className="shadow-custom-3 flex overflow-hidden h-[80vh] w-[1200px] rounded-[50px] bg-[rgb( 225, 230, 220)]/[.1]">
-            <Image src={image.signIn} className="w-[50%]" alt="background" />
+            <Image src="/image/SignIn.png" width={600} height={600} alt="background" />
 
             <FormController.Provider
                 value={{

@@ -70,7 +70,9 @@ export default function Comments({ postUuid }: { postUuid: string }) {
                     </div>
                 ))}
 
-            {isProfileSuccess && !isRefetching && <Comment postUuid={postUuid} currentUser={profile} key={0} />}
+            {isProfileSuccess && !isRefetching && (
+                <Comment pressEnter postUuid={postUuid} currentUser={profile} key={0} />
+            )}
         </>
     );
 }

@@ -12,7 +12,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { NotificationController, UserController } from '~/controller';
-import image from '~/assets/image';
 import { useClasses, useProfile, useNotification } from '~/hooks';
 import Announcenment from '../Annoucement';
 
@@ -68,7 +67,7 @@ export default function SideBar() {
         const data = await userController.logOut(user.uuid);
         if (!data.error) {
             window.localStorage.removeItem('token');
-            queryClient.cancelQueries();
+            queryClient.removeQueries();
             router.push('/SignIn');
         }
     };
@@ -108,7 +107,7 @@ export default function SideBar() {
             >
                 <div>
                     <div className="flex border-b-2 border-solid border-slate-100 py-[16px] border-">
-                        <Image src={image.logo} alt="Logo" width={100} className="min-w-[40px]" />
+                        <Image src={"/image/logo.png"} alt="Logo" width={100} height={100} className="min-w-[40px]" />
                     </div>
 
                     <div className="my-[16px] border-b-2 border-solid border-slate-100">
@@ -194,8 +193,8 @@ export default function SideBar() {
                                         user.avatar !== null
                                             ? user.avatar
                                             : user.role === 'TEACHER'
-                                              ? image.teacher
-                                              : image.student
+                                              ? "/image/teacher.png"
+                                              : "/image/student.png"
                                     }
                                     width={28}
                                     height={28}

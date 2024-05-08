@@ -9,7 +9,6 @@ import Link from 'next/link';
 
 import Calendar from '~/components/Calendar';
 import Image from 'next/image';
-import image from '~/assets/image';
 import useProfile from '~/hooks/useProfile';
 import { useCalendar } from '~/hooks';
 import { PostController } from '~/controller';
@@ -61,8 +60,8 @@ export default function RightSideBar({ classUuid }: { classUuid: string }) {
                                 profile.avatar !== null
                                     ? profile.avatar
                                     : profile.role === 'TEACHER'
-                                      ? image.teacher
-                                      : image.student
+                                      ? "/image/teacher.png"
+                                      : "/image/student.png"
                             }
                             width={100}
                             height={100}
@@ -75,7 +74,7 @@ export default function RightSideBar({ classUuid }: { classUuid: string }) {
                 </div>
 
                 {!isMarkedDaysSuccess ? (
-                    <Loading className="text-[64px]" />
+                    <Loading />
                 ) : (
                     <Calendar handleClickDay={handleClickDay} markedDays={markedDays} />
                 )}

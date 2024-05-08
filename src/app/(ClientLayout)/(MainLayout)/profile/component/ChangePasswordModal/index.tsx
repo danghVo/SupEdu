@@ -45,7 +45,11 @@ export default function ChangePasswordModal({ handleCloseModal }: { handleCloseM
             <Form
                 handleSubmit={handleSubmit}
                 errMessage={{ message: error }}
-                submit={{ content: loading ? <Loading /> : 'Xác nhận', custom: 'mt-[0] w-full', loading }}
+                submit={{
+                    content: loading ? <Loading className="text-[32px]" /> : 'Xác nhận',
+                    custom: 'mt-[0] w-full',
+                    loading,
+                }}
                 className="flex flex-col items-center justify-center gap-[16px] px-[64px] min-w-[500px]"
             >
                 <Input

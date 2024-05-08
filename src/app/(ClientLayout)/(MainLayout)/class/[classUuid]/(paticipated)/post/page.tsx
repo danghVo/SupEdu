@@ -53,23 +53,29 @@ export default function Page({ params: { classUuid } }: { params: { classUuid: s
             queryClient.invalidateQueries({
                 queryKey: ['calendar', classData.uuid],
             });
+        } else {
+            notificationShow('Xóa bài viết thất bại. Hãy thử lại sau', NotificationType.error);
         }
     };
 
-    const onUpdate = (isSuccess: boolean) => {
+    const onUpdate = (isSuccess: boolean, warning?: string) => {
         if (isSuccess) {
             refetch();
-            notificationShow('Cập nhật bài viết thành công', NotificationType.success);
+            if (warning) {
+                notificationShow(warning, NotificationType.warning);
+            } else notificationShow('Cập nhật bài viết thành công', NotificationType.success);
+
             queryClient.invalidateQueries({
                 queryKey: ['calendar', classData.uuid],
             });
+        } else {
+            notificationShow('Cập nhật bài viết thất bại. Hãy thử lại sau', NotificationType.error);
         }
     };
 
     return (
-        <motion.div key={Math.random()} initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+        <motion.div key={Math.random()} className="relative" initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
             {classData.isOwner && <NewPost classUuid={classUuid} />}
-
             {isPostsSuccess &&
                 isClassSuccess &&
                 (posts.length > 0 ? (

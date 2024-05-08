@@ -7,7 +7,6 @@ import { faPen } from '@fortawesome/free-solid-svg-icons';
 import Image from 'next/image';
 
 import Loading from '../loading';
-import image from '~/assets/image';
 import Input from '~/components/Input';
 import Button from '~/components/Button';
 import ChangePasswordModal from './component/ChangePasswordModal';
@@ -15,6 +14,8 @@ import InputFile from '~/components/Input/InputFile';
 import { UserController } from '~/controller';
 import { NotificationTheme } from '../layout';
 import { NotificationType } from '~/components/Notification';
+import { requiredRule } from '~/components/Input/rules';
+import minValueRule from '~/components/Input/rules/minValueRule';
 
 export default function Page({ params: { userUuid } }: { params: { userUuid: string } }) {
     const { fileBuffers, setAddFile } = useFile();
@@ -43,7 +44,7 @@ export default function Page({ params: { userUuid } }: { params: { userUuid: str
         if (isSuccess) {
             if (
                 (debounceName && debounceName !== profile.name) ||
-                (debounceAge && debounceAge !== profile.age.toString())
+                (parseInt(debounceAge) >= 18 && debounceAge !== profile.age.toString())
             )
                 handleSubmit();
         }
@@ -80,8 +81,8 @@ export default function Page({ params: { userUuid } }: { params: { userUuid: str
                             profile.avatar !== null
                                 ? profile.avatar
                                 : profile.role === 'TEACHER'
-                                  ? image.teacher
-                                  : image.student
+                                  ? "/image/teacher.png"
+                                  : "/image/student.png"
                         }
                         width={200}
                         height={200}
@@ -99,10 +100,17 @@ export default function Page({ params: { userUuid } }: { params: { userUuid: str
 
             <div className="w-[300px] bg-white h-full shadow-custom-5 rounded-xl grow flex justify-around text-[20px] px-[64px] py-[32px]">
                 <div className="flex flex-col items-center gap-[64px] my-[64px]">
-                    <div>
+                    <div
+                        onBlur={() => {
+                            if (debounceName === '') {
+                                setUserData({ ...userData, name: profile.name });
+                            }
+                        }}
+                    >
                         <div className="mb-[8px] font-bold">Tên: </div>
                         <Input
                             value={userData.name}
+                            rules={[requiredRule]}
                             classNameWrapper="rounded-lg shadow-none border-2 w-[300px]"
                             className="text-[18px]"
                             onChange={(value) => {
@@ -130,9 +138,17 @@ export default function Page({ params: { userUuid } }: { params: { userUuid: str
                             {profile.email}
                         </div>
                     </div>
-                    <div className="w-[300px]">
+                    <div
+                        className="w-[300px]"
+                        onBlur={() => {
+                            if (parseInt(debounceAge) < 18) {
+                                setUserData({ ...userData, age: profile.age });
+                            }
+                        }}
+                    >
                         <div className="mb-[8px] font-bold">Tuổi: </div>
                         <Input
+                            rules={[minValueRule(18)]}
                             value={userData.age.toString()}
                             inputType="number"
                             classNameWrapper="rounded-lg shadow-none border-2 w-[300px]"

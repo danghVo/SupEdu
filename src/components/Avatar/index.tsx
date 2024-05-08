@@ -2,7 +2,6 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 
-import image from '~/assets/image';
 
 interface AvatarProps {
     className?: string;
@@ -25,7 +24,7 @@ export default function Avatar({ className, userInfor }: AvatarProps) {
             onMouseLeave={() => [setIsShowInfor(false)]}
         >
             <Image
-                src={userInfor.avatar !== null ? userInfor.avatar : image.teacher}
+                src={userInfor.avatar !== null ? userInfor.avatar : "/image/teacher.png"}
                 width={40}
                 height={40}
                 alt="avatar"
@@ -36,11 +35,12 @@ export default function Avatar({ className, userInfor }: AvatarProps) {
                 <motion.div
                     initial={{ opacity: 0, width: 0, height: 0 }}
                     animate={{ opacity: 1, width: 'fit-content', height: 'fit-content' }}
-                    className="bg-white overflow-hidden absolute top-[0] left-[110%] rounded-2xl shadow-custom-2"
+                    className="bg-white overflow-hidden absolute top-[0] left-[110%] z-[99] rounded-2xl shadow-custom-2"
                 >
                     <div className="px-[16px] py-[12px]">
-                        <div className="text-[18px] mb-[8px]">{userInfor.name}</div>
-                        <div className="text-slate-400">{userInfor.email}</div>
+                        <div className="text-[18px] mb-[8px] text-nowrap">Tên: {userInfor.name}</div>
+                        <div className="text-slate-500 text-nowrap">Email: {userInfor.email}</div>
+
                     </div>
                 </motion.div>
             )}

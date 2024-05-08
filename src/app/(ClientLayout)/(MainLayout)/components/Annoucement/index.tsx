@@ -49,7 +49,7 @@ export default function Announcenment({ notifications }: { notifications: Array<
             }
 
             if (uuid) {
-                e.stopProgation();
+                e.stopPropagation();
                 const isExist = await postController.checkExist(uuid);
 
                 if (!isExist.error) {

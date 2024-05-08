@@ -1,18 +1,16 @@
-import { useRef, useState } from 'react';
+import { createContext, useEffect, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faArrowUpFromBracket, faCaretDown, faEraser, faPen, faXmark } from '@fortawesome/free-solid-svg-icons';
-import { RawDraftContentState } from 'draft-js';
+import { faArrowUpFromBracket, faEraser, faPen, faXmark } from '@fortawesome/free-solid-svg-icons';
+import { convertFromRaw, RawDraftContentState } from 'draft-js';
 import Image from 'next/image';
 
-import { FileType, TimeData, buttonActionName, fileExtensions, postType } from '~/constant';
+import { FileType, TimeData, fileExtensions, postType } from '~/constant';
 import Button from '../Button';
 import TextEditor from '../TextEditor';
 import Selection from '../Selection';
 import Vote, { VoteData } from './Vote';
 import InputFile from '../Input/InputFile';
-import TimeSetterBox from './TimeSetterBox';
-import Modal from '../Modal';
 import Input from '../Input';
 import TimeTaskEnd from './TimeTaskEnd';
 import { requiredRule } from '../Input/rules';
@@ -24,7 +22,7 @@ import Loading from '../Loading';
 import { useClass } from '~/hooks';
 
 const currentDay = new Date();
-const lastDayOfCurrentMonth = new Date(currentDay.getFullYear(), currentDay.getMonth() + 1, 0);
+// const lastDayOfCurrentMonth = new Date(currentDay.getFullYear(), currentDay.getMonth() + 1, 0);
 
 export interface PostData {
     uuid?: string;
@@ -54,7 +52,7 @@ export default function PostCard({
     handleSubmit?: (payload: any) => Promise<boolean>;
     editable?: boolean;
     onDelete?: (isSuccess: boolean) => void;
-    onUpdate?: (isSuccess: boolean) => void;
+    onUpdate?: (isSuccess: boolean, warning?: string) => void;
 }) {
     const [type, setType] = useState(
         postData?.type ? postType.find((type) => type.submit === postData.type)!.name : postType[0].name,
@@ -83,28 +81,20 @@ export default function PostCard({
             : [],
     );
     const [filesBuffer, setFilesBuffer] = useState<Array<File>>([]);
-
-    const [openTimeSetterModal, setOpenTimeSetterModal] = useState(false);
-    const [timePost, setTimePost] = useState<TimeData>(
-        postData?.timePost || {
-            date: `${currentDay.getDate() < 10 ? '0' : ''}${currentDay.getDate()}/${currentDay.getMonth() + 1 < 10 ? '0' : ''}${currentDay.getMonth() + 1}/${currentDay.getFullYear()}`,
-            time: `${currentDay.getHours() < 10 ? '0' : ''}${currentDay.getHours()}:${currentDay.getMinutes() < 10 ? '0' : ''}${currentDay.getMinutes()}`,
-        },
-    );
-
     const [error, setError] = useState('');
-
+    const [voteError, setVoteError] = useState('');
     const [isShowEdit, setIsShowEdit] = useState(false);
     const [editMode, setEditMode] = useState(edit);
-    const [buttonAction, setButtonAction] = useState({
-        label: edit ? buttonActionName[0] : 'Sửa đổi',
-        openOption: false,
-    });
     const [openConfirmModal, setOpenConfirmModal] = useState(false);
     const [loading, setLoading] = useState(false);
     const { data } = useClass(classUuid);
 
     const handleAddFile = (file: File) => {
+        if (file.size > 500 * 1024 * 1024) {
+            setError('Dung lượng file quá lớn');
+            return;
+        }
+
         const url = URL.createObjectURL(file);
         const extension = file.type.split('/')[1];
         const type = fileExtensions.find((item) => item.extension === extension);
@@ -134,13 +124,20 @@ export default function PostCard({
     };
 
     const validInput = () => {
+        if (voteError) {
+            return false;
+        }
+
         if (type === 'Bình chọn' && voteData) {
             if (voteData.options.find((item) => item.value === '')) {
                 return false;
             }
         }
 
-        if (rawContentState === null && type !== 'Bình chọn') {
+        if (
+            type !== 'Bình chọn' &&
+            (rawContentState === null || convertFromRaw(rawContentState!).getPlainText().length === 0)
+        ) {
             return false;
         }
 
@@ -152,24 +149,18 @@ export default function PostCard({
     };
 
     const handleCreatePost = async () => {
-        if (!validInput()) {
-            setError('Vui lòng điền đầy đủ thông tin');
-        } else {
-            setError('');
-            setLoading(true);
+        setLoading(true);
 
-            const res = await handleSubmit({
-                type: postType.find((item) => item.name === type)!.submit,
-                title: title,
-                timeTaskEnd,
-                timePost,
-                files: filesBuffer,
-                content: JSON.stringify(rawContentState || ''),
-                voteData: type === 'Bình chọn' ? voteData : undefined,
-            });
+        await handleSubmit({
+            type: postType.find((item) => item.name === type)!.submit,
+            title: title,
+            timeTaskEnd,
+            files: filesBuffer,
+            content: JSON.stringify(rawContentState || ''),
+            voteData: type === 'Bình chọn' ? voteData : undefined,
+        });
 
-            setLoading(false);
-        }
+        setLoading(false);
     };
 
     const handleDeletePost = async (postUuid: string) => {
@@ -189,7 +180,7 @@ export default function PostCard({
             delete updatePostData.title;
         }
 
-        if (postData!.content!.localeCompare(updatePostData.content) !== 0) {
+        if (postData!.content!.localeCompare(updatePostData.content) === 0) {
             delete updatePostData.content;
         }
 
@@ -206,28 +197,31 @@ export default function PostCard({
 
         const res = await postController.updatePost(classUuid, updatePostData, postUuid);
 
-        onUpdate(!res.error);
+        onUpdate(!res.error, res?.warning);
         setLoading(false);
     };
 
     const handleClickSubmitButton = () => {
-        if (buttonAction.label === 'Đặt hẹn') {
-            setOpenTimeSetterModal(true);
+        if (!validInput()) {
+            if (voteError) {
+                setError(voteError);
+            } else setError('Vui lòng điền đầy đủ thông tin');
+        } else {
+            setError('');
+            if (!edit && editMode === true) {
+                handleUpdatePost(postData?.uuid!, {
+                    type: postType.find((item) => item.name === type)!.submit,
+                    title: title,
+                    content: JSON.stringify(rawContentState || ''),
+                    timeTaskEnd,
+                    filesUpdate: files,
+                    files: filesBuffer,
+                    voteData: type === 'Bình chọn' ? voteData : null,
+                });
+            } else handleCreatePost();
+
+            setEditMode((prev) => !prev);
         }
-
-        if (!edit && editMode === true) {
-            handleUpdatePost(postData?.uuid!, {
-                type: postType.find((item) => item.name === type)!.submit,
-                title: title,
-                content: JSON.stringify(rawContentState || ''),
-                timeTaskEnd,
-                filesUpdate: files,
-                files: filesBuffer,
-                voteData: type === 'Bình chọn' ? voteData : null,
-            });
-        } else handleCreatePost();
-
-        setEditMode((prev) => !prev);
     };
 
     return (
@@ -289,7 +283,10 @@ export default function PostCard({
                                     <Selection
                                         optionData={postType.map((item) => item.name)}
                                         label="Loại"
-                                        onChange={(type) => setType(type)}
+                                        onChange={(type) => {
+                                            setVoteError('');
+                                            setType(type);
+                                        }}
                                         className="bg-[var(--text-color)] text-white rounded-full"
                                     />
                                 ) : (
@@ -338,6 +335,8 @@ export default function PostCard({
 
                             {type === 'Bình chọn' && (
                                 <Vote
+                                    error={voteError}
+                                    onError={setVoteError}
                                     expireTime={postData?.timeTaskEnd}
                                     classUuid={classUuid}
                                     edit={editMode}
@@ -358,9 +357,11 @@ export default function PostCard({
                                                 className={`border-2 w-[200px] h-[50px] px-[12px] flex items-center rounded-lg my-[12px]`}
                                             >
                                                 <Image
-                                                    src={require(`~/assets/extension/${file.extension}.png`)}
+                                                    src={`/extension/${file.extension}.png`}
                                                     className="bg-contain w-fit max-h-full py-[8px] pr-[8px]"
                                                     alt="file-type"
+                                                    width={20}
+                                                    height={50}
                                                 />
                                                 <a
                                                     href={file.path}
@@ -398,48 +399,10 @@ export default function PostCard({
                                     <div className="flex relative z-[20] ml-auto">
                                         <Button
                                             handleClick={handleClickSubmitButton}
-                                            className={`${edit ? 'rounded-none rounded-l-lg' : 'rounded-lg'} w-[80px]`}
+                                            className={`${'rounded-lg'} w-[80px]`}
                                         >
-                                            {buttonAction.label}
+                                            Đăng
                                         </Button>
-                                        {edit && (
-                                            <div
-                                                className="grow flex items-center justify-center bg-black px-[12px] text-white rounded-tr-lg rounded-br-lg cursor-pointer"
-                                                onClick={() =>
-                                                    setButtonAction((prev) => ({
-                                                        ...prev,
-                                                        openOption: !prev.openOption,
-                                                    }))
-                                                }
-                                            >
-                                                <FontAwesomeIcon icon={faCaretDown} />
-                                            </div>
-                                        )}
-
-                                        <AnimatePresence>
-                                            {buttonAction.openOption && (
-                                                <motion.div
-                                                    initial={{ height: 0 }}
-                                                    animate={{ height: 'fit-content' }}
-                                                    exit={{ height: 0 }}
-                                                    className="absolute right-0 left-0 top-[110%] bg-white shadow-custom-3 rounded-lg overflow-hidden"
-                                                >
-                                                    {buttonActionName.map((item, index) => (
-                                                        <div
-                                                            key={index}
-                                                            className={`px-[12px] py-[8px] cursor-pointer hover:bg-slate-800 hover:text-white ${
-                                                                item === buttonAction.label ? 'bg-black text-white' : ''
-                                                            }`}
-                                                            onClick={() =>
-                                                                setButtonAction({ label: item, openOption: false })
-                                                            }
-                                                        >
-                                                            {item}
-                                                        </div>
-                                                    ))}
-                                                </motion.div>
-                                            )}
-                                        </AnimatePresence>
                                     </div>
                                 </div>
                             )}
@@ -453,26 +416,6 @@ export default function PostCard({
                     </div>
                 )}
             </div>
-
-            {openTimeSetterModal && (
-                <Modal
-                    width={'fit-content'}
-                    height={'fit-content'}
-                    handleCloseModal={() => {
-                        setOpenTimeSetterModal(false);
-                    }}
-                >
-                    <TimeSetterBox
-                        handleCloseBox={() => {
-                            setOpenTimeSetterModal(false);
-                        }}
-                        label="Đăng lúc"
-                        time={timePost.time}
-                        date={timePost.date}
-                        onChange={setTimePost}
-                    />
-                </Modal>
-            )}
 
             {openConfirmModal && (
                 <ConfirmModal

@@ -7,7 +7,7 @@ import Selection from '~/components/Selection';
 import checkTimeExprire from '~/components/TextEditor/utils/checkTimeExpire';
 import { useClass, useExercise, useSubmits } from '~/hooks';
 
-export default function page({
+export default function Page({
     params: { classUuid, exerciseId },
 }: {
     params: { classUuid: string; exerciseId: string };
@@ -136,7 +136,6 @@ export default function page({
                         <MemberScoreCard
                             classUuid={classUuid}
                             refetch={refetch}
-                            isExpired={checkTimeExprire(exercise.timeTaskEnd.timne, exercise.timeTaskEnd.date)}
                             submitUuid={item.uuid}
                             key={item.uuid}
                             infor={item}

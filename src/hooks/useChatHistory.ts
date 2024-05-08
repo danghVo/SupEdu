@@ -8,6 +8,13 @@ export default function useChatHistory(uuid: string) {
 
     return useQuery({
         queryKey: ['chat', uuid],
-        queryFn: () => chatController.getHistory(uuid),
+        queryFn: async () => {
+            const data = await chatController.getHistory(uuid);
+            await queryClient.invalidateQueries({
+                queryKey: ['chatInfor'],
+            });
+
+            return data;
+        },
     });
 }

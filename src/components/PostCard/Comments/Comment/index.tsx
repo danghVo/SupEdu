@@ -1,14 +1,15 @@
 import Image from 'next/image';
-import { useEffect, useMemo, useState } from 'react';
-import Input from '~/components/Input';
-import image from '~/assets/image';
-import TextEditor from '~/components/TextEditor';
+import { useContext, useMemo, useState } from 'react';
 import { RawDraftContentState } from 'draft-js';
-import Button from '~/components/Button';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import { useQueryClient } from '@tanstack/react-query';
+
+import TextEditor from '~/components/TextEditor';
+import Button from '~/components/Button';
 import { PostController } from '~/controller';
+import { NotificationTheme } from '~/app/(ClientLayout)/(MainLayout)/layout';
+import { NotificationType } from '~/components/Notification';
 
 export interface CommentData {
     user: {
@@ -25,10 +26,12 @@ export interface CommentData {
 
 export default function Comment({
     postUuid,
+    pressEnter = false,
     currentUser,
     commentData,
 }: {
     postUuid: string;
+    pressEnter?: boolean;
     currentUser?: { avatar: string; role: string };
     commentData?: CommentData & { user: { name: string; avatar: string; role: string } };
 }) {
@@ -36,29 +39,28 @@ export default function Comment({
         commentData ? JSON.parse(commentData.content) : null,
     );
     const queryClient = useQueryClient();
+    const notificationShow = useContext(NotificationTheme);
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (enterComment?: RawDraftContentState) => {
         if (postUuid) {
             const currentDay = new Date();
 
             const postController = new PostController();
 
-            const res = await queryClient.fetchQuery({
-                queryKey: ['comment', postUuid],
-                queryFn: () =>
-                    postController.comment(postUuid, {
-                        content: JSON.stringify(comment),
-                        createIn: {
-                            date: `${currentDay.getDate() < 9 ? '0' : ''}${currentDay.getDate()}/${currentDay.getMonth() + 1 < 10 ? '0' : ''}${currentDay.getMonth() + 1}/${currentDay.getFullYear()}`,
-                            time: `${currentDay.getHours() < 10 ? '0' : ''}${currentDay.getHours()}:${currentDay.getMinutes() <= 9 ? '0' + currentDay.getMinutes() : currentDay.getMinutes()}`,
-                        },
-                    }),
+            const res = await postController.comment(postUuid, {
+                content: JSON.stringify(enterComment || comment),
+                createIn: {
+                    date: `${currentDay.getDate() < 9 ? '0' : ''}${currentDay.getDate()}/${currentDay.getMonth() + 1 < 10 ? '0' : ''}${currentDay.getMonth() + 1}/${currentDay.getFullYear()}`,
+                    time: `${currentDay.getHours() < 10 ? '0' : ''}${currentDay.getHours()}:${currentDay.getMinutes() <= 9 ? '0' + currentDay.getMinutes() : currentDay.getMinutes()}`,
+                },
             });
 
             if (!res.error) {
                 queryClient.invalidateQueries({
                     queryKey: ['comments', postUuid],
                 });
+            } else {
+                notificationShow('Bình luận thất bại', NotificationType.error);
             }
         }
     };
@@ -68,7 +70,7 @@ export default function Comment({
             if (commentData.user.avatar) {
                 return commentData.user.avatar;
             } else {
-                return commentData.user.role === 'TEACHER' ? image.teacher : image.student;
+                return commentData.user.role === 'TEACHER' ? "/image/teacher.png" : "/image/student.png";
             }
         }
 
@@ -76,7 +78,7 @@ export default function Comment({
             if (currentUser.avatar) {
                 return currentUser.avatar;
             } else {
-                return currentUser.role === 'TEACHER' ? image.teacher : image.student;
+                return currentUser.role === 'TEACHER' ? "/image/teacher.png" : "/image/student.png";
             }
         }
         return '';
@@ -99,6 +101,7 @@ export default function Comment({
                     <div className="mb-[8px] ml-[4px] font-bold">{commentData?.user.name}</div>
                     <div className="w-full">
                         <TextEditor
+                            pressEnter={pressEnter ? (comment) => handleSubmit(comment) : undefined}
                             editable={!commentData}
                             isToolboxOffetStype={false}
                             isToolboxType={false}

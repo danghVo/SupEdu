@@ -3,7 +3,7 @@ import { useState } from 'react';
 
 import Form from '~/components/Form';
 import Input from '~/components/Input';
-import { joinClassValueRule } from '~/components/Input/rules';
+import { joinClassValueRule, requiredRule } from '~/components/Input/rules';
 import Modal from '~/components/Modal';
 
 export default function JoinModal({ handleCloseModal }: { handleCloseModal: () => void }) {
@@ -23,7 +23,7 @@ export default function JoinModal({ handleCloseModal }: { handleCloseModal: () =
                 <Form handleSubmit={handleSubmit} submit={{ content: 'Tham gia lớp', custom: 'w-full' }}>
                     <Input
                         label="Nhập link hoặc class ID"
-                        rules={[joinClassValueRule]}
+                        rules={[requiredRule, joinClassValueRule]}
                         onChange={setClassJoin}
                         value={classJoin}
                     />

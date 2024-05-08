@@ -1,13 +1,3 @@
-import {
-    faArrowCircleLeft,
-    faArrowLeft,
-    faChartColumn,
-    faInbox,
-    faPen,
-    faPenToSquare,
-} from '@fortawesome/free-solid-svg-icons';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import Link from 'next/link';
 import { PostController } from '~/controller';
 import ExerciseNav from './components/ExerciseNav';
 
@@ -28,7 +18,7 @@ export default function Layout({
     params: { classUuid: string; exerciseId: string };
 }) {
     return (
-        <div>
+        <div className="relative pb-[32px]">
             <ExerciseNav classUuid={classUuid} exerciseId={exerciseId} />
             {children}
         </div>

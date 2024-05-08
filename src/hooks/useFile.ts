@@ -7,6 +7,7 @@ export default function useFile(): {
     setAddFile: (file: File) => void;
     setRemoveFile: (removedIndex: number, isInBuffer: boolean) => void;
     setInitFiles: (files: Array<any>) => void;
+    setClearFiles: () => void;
 } {
     const [files, setFiles] = useState<Array<FileType>>([]);
     const [fileBuffers, setFileBuffers] = useState<Array<File>>([]);
@@ -39,6 +40,10 @@ export default function useFile(): {
         setFiles(newFiles);
     };
 
+    const setClearFiles = () => {
+        setFileBuffers([]);
+    }
+
     const setInitFiles = (files: Array<FileType>) => {
         setFiles(
             files.map((file) => ({
@@ -52,5 +57,5 @@ export default function useFile(): {
         );
     };
 
-    return { files, fileBuffers, setAddFile, setRemoveFile, setInitFiles };
+    return { files, fileBuffers, setAddFile, setRemoveFile, setInitFiles, setClearFiles };
 }

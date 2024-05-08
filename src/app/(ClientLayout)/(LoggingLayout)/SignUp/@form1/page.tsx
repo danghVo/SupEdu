@@ -15,7 +15,7 @@ export interface SignUpFormProps {
 }
 
 export default function Page() {
-    const { onBackward, onForward, formData, onChange }: SignUpFormProps = useContext(FormController);
+    const { onForward, formData, onChange }: SignUpFormProps = useContext(FormController);
 
     return (
         <Form handleSubmit={onForward} className="w-full" submit={{ content: 'Tiếp tục', custom: 'rounded-full ' }}>

@@ -1,24 +1,26 @@
 'use client';
 
 import { RawDraftContentState } from 'draft-js';
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCaretRight } from '@fortawesome/free-solid-svg-icons';
+import { faCaretRight, faCheckCircle } from '@fortawesome/free-solid-svg-icons';
 import { io } from 'socket.io-client';
 import Image from 'next/image';
 
 import TextEditor from '~/components/TextEditor';
-import image from '~/assets/image';
 import SimpleBarReact from 'simplebar-react';
 import useChatHistory from '~/hooks/useChatHistory';
 import Loading from '~/components/Loading';
 import { ChatController } from '~/controller';
 import { useProfile } from '~/hooks';
+import { NotificationTheme } from '../../layout';
+import { NotificationType } from '~/components/Notification';
 
-export default function page({ params }: { params: { chatUuid: string } }) {
+export default function Page({ params }: { params: { chatUuid: string } }) {
     const { data: chatHistory, isSuccess: isChatHistorySuccess, refetch } = useChatHistory(params.chatUuid);
-    const { data: profile } = useProfile();
+    const { data: profile, isSuccess: isProfileSuccess } = useProfile();
     const [message, setMessage] = useState<null | RawDraftContentState>(null);
+    const notificationShow = useContext(NotificationTheme);
 
     const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -55,11 +57,13 @@ export default function page({ params }: { params: { chatUuid: string } }) {
             if (!res.error) {
                 setMessage(null);
                 refetch();
+            } else {
+                notificationShow('Gửi tin nhắn thất bại', NotificationType.error);
             }
         }
     };
 
-    return isChatHistorySuccess ? (
+    return isChatHistorySuccess && isProfileSuccess ? (
         <div className="w-full flex flex-col h-screen justify-end pb-[32px] relative">
             <div className="bg-white h-[80px] w-full absolute top-0 border-b-2 border-slate-200 flex items-center justify-center">
                 <div className="flex flex-col justify-center items-center relative">
@@ -69,8 +73,8 @@ export default function page({ params }: { params: { chatUuid: string } }) {
                             chatHistory.avatar !== null
                                 ? chatHistory.avatar
                                 : chatHistory.role === 'TEACHER'
-                                  ? image.teacher
-                                  : image.student
+                                  ? "/image/teacher.png"
+                                  : "/image/student.png"
                         }
                         width={40}
                         height={40}
@@ -100,16 +104,48 @@ export default function page({ params }: { params: { chatUuid: string } }) {
                                 <div
                                     className={`flex flex-col ${message.fromUserUuid === profile.uuid ? 'items-end' : 'items-start'}`}
                                 >
-                                    <div
-                                        className={`px-[8px] py-[8px] w-fit max-w-[250px] rounded-lg ${message.fromUserUuid === profile.uuid ? 'bg-blue-500 text-white' : 'bg-slate-300 text-black'}`}
-                                    >
-                                        <TextEditor
-                                            editable={false}
-                                            rawContentState={JSON.parse(message.content)}
-                                            label=""
-                                        />
+                                    <div className="flex items-end gap-[8px]">
+                                        <div
+                                            className={`px-[8px] py-[8px] w-fit max-w-[250px] rounded-lg ${message.fromUserUuid === profile.uuid ? 'bg-blue-500 text-white' : 'bg-slate-300 text-black'}`}
+                                        >
+                                            <TextEditor
+                                                editable={false}
+                                                rawContentState={JSON.parse(message.content)}
+                                                label=""
+                                            />
+                                        </div>
+                                        {message.fromUserUuid === profile.uuid && typeof message.read === 'object' && (
+                                            <>
+                                                {message.read?.readInTime ? (
+                                                    <div className="relative group">
+                                                        <Image
+                                                            alt="avatar"
+                                                            src={
+                                                                message.read.user.avatar !== null
+                                                                    ? message.read.user.avatar
+                                                                    : message.read.user.role === 'TEACHER'
+                                                                      ? "/image/teacher.png"
+                                                                      : "/image/student.png"
+                                                            }
+                                                            width={16}
+                                                            height={16}
+                                                            className="rounded-full"
+                                                        />
+                                                        <div className="group-hover:visible invisible absolute bottom-0 right-0 rounded-full w-[40px] h-[40px] bg-transparent"></div>
+                                                        <div className="group-hover:visible invisible absolute bottom-[100%] right-[100%] w-fit whitespace-nowrap z-[60] px-[12px] py-[8px] bg-white rounded-lg shadow-custom-2">
+                                                            Đã xem vào {message.read.readInTime},{' '}
+                                                            {message.read.readInDate}
+                                                        </div>
+                                                    </div>
+                                                ) : (
+                                                    <FontAwesomeIcon icon={faCheckCircle} className="text-blue-500" />
+                                                )}
+                                            </>
+                                        )}
                                     </div>
-                                    <div className="text-slate-400 mt-[8px] ml-[4px]">
+                                    <div
+                                        className={`text-slate-400 mt-[8px] ml-[4px] ${typeof message.read === 'object' ? 'mr-[20px]' : ''}`}
+                                    >
                                         {message.sendIn.time}, {message.sendIn.date}
                                     </div>
                                 </div>

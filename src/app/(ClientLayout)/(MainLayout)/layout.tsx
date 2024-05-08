@@ -8,7 +8,7 @@ import useProfile from '~/hooks/useProfile';
 
 export const NotificationTheme = createContext<(message: string, type: NotificationType) => void>(() => {});
 
-export default function layout({ children }: { children: React.ReactNode }) {
+export default function Layout({ children }: { children: React.ReactNode }) {
     const { data, isSuccess } = useProfile();
     const router = useRouter();
 

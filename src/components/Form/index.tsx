@@ -37,6 +37,22 @@ function Form({ children, className = '', handleSubmit, submit, errMessage, cust
         }
     }, []);
 
+    useEffect(() => {
+        const formElement = formRef.current;
+
+        if (formElement) {
+            const inputElements = formElement.querySelectorAll('input');
+
+            Array.from(inputElements).forEach((inputElement) => {
+                inputElement.onkeydown = (e) => {
+                    if (e.key === 'Enter') {
+                        handleCheckForSubmit();
+                    }
+                };
+            });
+        }
+    }, [handleSubmit]);
+
     const handleCheckForSubmit = () => {
         let valid = true;
         const formElement = formRef.current;

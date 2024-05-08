@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 
 export default function Loading({ className }: { className?: string }) {
     return (
-        <div className={`text-[64px] grow h-full flex justify-center items-center ${className}`}>
+        <div className={`grow h-full flex justify-center items-center ${className || 'text-[64px]'}`}>
             <motion.div
                 initial={{ rotate: 0 }}
                 animate={{ rotate: 360 }}

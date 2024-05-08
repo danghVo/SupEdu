@@ -1,5 +1,7 @@
+import { buffer } from 'stream/consumers';
+
 export class HTTP {
-    private baseUrl = 'http://localhost:4000';
+    private baseUrl = 'http://localhost:4000/api';
 
     constructor(private accessToken: string | null) {}
 
@@ -13,7 +15,9 @@ export class HTTP {
             });
 
             return result.json();
-        } catch (error) {}
+        } catch (error) {
+            return { data: { error: error } };
+        }
     }
 
     async post(url: string, payload?: any, option?: object, isSendFile?: boolean) {
@@ -21,6 +25,22 @@ export class HTTP {
             let body;
             if (isSendFile) {
                 body = new FormData();
+
+                if (payload.file) {
+                    const buffer = await payload.file.arrayBuffer();
+
+                    payload['hashFile'] = await crypto.subtle.digest('SHA-256', buffer);
+                } else if (payload.files) {
+                    payload['hashFiles'] = {};
+
+                    for await (const file of payload.files) {
+                        const buffer = await file.arrayBuffer();
+                        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+                        payload['hashFiles'][file.name] = Array.from(new Uint8Array(hashBuffer))
+                            .map((b) => b.toString(16).padStart(2, '0'))
+                            .join('');
+                    }
+                }
 
                 for (const key in payload) {
                     if (payload[key] === undefined || payload[key] === null) continue;
@@ -51,7 +71,10 @@ export class HTTP {
             });
 
             return await result.json();
-        } catch (error) {}
+        } catch (error) {
+            console.log(error);
+            return { data: { error: error } };
+        }
     }
 
     async patch(url: string, payload?: any, option?: object, isSendFile?: boolean) {
@@ -59,6 +82,22 @@ export class HTTP {
             let body;
             if (isSendFile) {
                 body = new FormData();
+
+                if (payload.file) {
+                    const buffer = await payload.file.arrayBuffer();
+
+                    payload['hashFile'] = await crypto.subtle.digest('SHA-256', buffer);
+                } else if (payload.files) {
+                    payload['hashFiles'] = {};
+
+                    for await (const file of payload.files) {
+                        const buffer = await file.arrayBuffer();
+                        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+                        payload['hashFiles'][file.name] = Array.from(new Uint8Array(hashBuffer))
+                            .map((b) => b.toString(16).padStart(2, '0'))
+                            .join('');
+                    }
+                }
 
                 for (const key in payload) {
                     if (payload[key] === undefined || payload[key] === null) continue;
@@ -89,7 +128,10 @@ export class HTTP {
             });
 
             return result.json();
-        } catch (error) {}
+        } catch (error) {
+            console.log(error);
+            return { data: { error: error } };
+        }
     }
 
     async put(url: string, payload?: any, option?: object, isSendFile?: boolean) {
@@ -97,6 +139,22 @@ export class HTTP {
             let body;
             if (isSendFile) {
                 body = new FormData();
+
+                if (payload.file) {
+                    const buffer = await payload.file.arrayBuffer();
+
+                    payload['hashFile'] = await crypto.subtle.digest('SHA-256', buffer);
+                } else if (payload.files) {
+                    payload['hashFiles'] = {};
+
+                    for await (const file of payload.files) {
+                        const buffer = await file.arrayBuffer();
+                        const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+                        payload['hashFiles'][file.name] = Array.from(new Uint8Array(hashBuffer))
+                            .map((b) => b.toString(16).padStart(2, '0'))
+                            .join('');
+                    }
+                }
 
                 for (const key in payload) {
                     if (payload[key] === undefined || payload[key] === null) continue;
@@ -127,7 +185,11 @@ export class HTTP {
             });
 
             return result.json();
-        } catch (error) {}
+        } catch (error) {
+            console.log(error);
+
+            return { data: { error: error } };
+        }
     }
 
     async delete(url: string, option?: object) {
@@ -141,6 +203,8 @@ export class HTTP {
             });
 
             return result.json();
-        } catch (error) {}
+        } catch (error) {
+            return { data: { error: error } };
+        }
     }
 }
